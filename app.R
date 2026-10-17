@@ -13,25 +13,14 @@ pl   <- load_polls()
 
 POLLED <- setdiff(PARTIES$code, names(INSIDE))
 info <- base$info
-# Party names. A few depend on the language (PARTY_NAMES), and the joint list
-# of the left has its own name in the Valencian provinces (`cpro`).
-lab <- function(code, lang, cpro = NULL) {
-  out <- info[code, "label"]
-  translated <- code %in% names(PARTY_NAMES)
-  out[translated] <- vapply(code[translated], function(p) PARTY_NAMES[[p]][[lang]], "")
-  if (!is.null(cpro) && cpro %in% COMPROMIS_PROV) out[code == UNITY] <- UNITY_VALENCIA
-  out
-}
-# Parties offered in the map and majority selectors, with or without the
-# left-unity list.
-party_choices <- function(united, lang) {
-  codes <- if (united) c(setdiff(PARTIES$code, UNITY_MEMBERS), UNITY) else PARTIES$code
-  setNames(codes, lab(codes, lang))
-}
-# Label of a poll figure: it names the parties it contains.
+# Party names (see party_label; `cpro` is the province, if any).
+lab <- function(code, lang, cpro = NULL) party_label(info, code, lang, cpro)
+party_choices <- function(lang) setNames(PARTIES$code, lab(PARTIES$code, lang))
+# Label of a poll figure: it names the parties it contains (plain "Compromís",
+# not the name of the 2026 joint list).
 poll_lab <- function(code, lang) {
   inside <- vapply(code, function(p) {
-    paste(c("", lab(names(INSIDE)[INSIDE == p], lang)), collapse = " + ")
+    paste(c("", info[names(INSIDE)[INSIDE == p], "label"]), collapse = " + ")
   }, "")
   paste0(lab(code, lang), inside)
 }
@@ -51,8 +40,42 @@ trend <- if (has_polls) {
 start_value <- round(ifelse(is.na(trend), 100 * base$nat23[POLLED], trend), 1)
 names(start_value) <- POLLED
 rest23 <- 100 * (1 - sum(base$nat23[PARTIES$code]))
-# Scenario boxes that the left-unity switch replaces with one box for the joint list.
-UNITY_BOXES <- intersect(POLLED, UNITY_MEMBERS)
+
+# Default projection: what the app shows on opening. It is computed once here
+# and also published as data files for other interfaces (R/export.R), so the
+# files change exactly when the polls do, at the start of the R process.
+DEFAULT_POLL <- if (has_polls) "trend" else "avg"
+default_est <- if (has_polls) trend else avg
+default_n <- if (has_polls) sum(poll_n[pl$in_avg]) else NA_real_
+default_sim <- simulate_election(base, build_target(default_est, base)$target, n_poll = default_n)
+stamp <- function(t) format(t, "%Y-%m-%dT%H:%M:%S%z", tz = TIME_ZONE)
+export_bytes <- serialise_export(build_export(default_sim, base, default_est, list(
+  generated_at = stamp(Sys.time()),
+  election_date = format(ELECTION_DATE),
+  polls = list(
+    source = pl$source,
+    source_url = if (pl$source == "wikipedia") WIKI_URL else POLLS_URL,
+    downloaded_live = pl$live,
+    retrieved_at = stamp(pl$retrieved),
+    estimate = if (has_polls) "trend" else "2023 result (no polls in the window)",
+    window_days = WINDOW_DAYS,
+    n_polls = nrow(pl$polls),
+    n_pollsters = sum(pl$in_avg),
+    first_fieldwork_end = if (has_polls) format(min(pl$polls$date)) else NA,
+    last_fieldwork_end = if (has_polls) format(max(pl$polls$date)) else NA
+  ),
+  settings = list(
+    simulations = DEFAULT_SIMS,
+    national_error_points_at_30pct = DEFAULT_NAT_ERR,
+    provincial_deviation_pct = 100 * DEFAULT_SIGMA,
+    seed = SIM_SEED,
+    interval = "90%: 5th to 95th percentile of simulated seats",
+    threshold_pct = 100 * THRESHOLD,
+    total_seats = sum(base$seats),
+    majority = MAJORITY
+  )
+)))
+write_export(export_bytes, export_dir())
 
 SOURCE_LINK <- as.character(
   if (pl$source == "wikipedia") {
@@ -157,34 +180,23 @@ sidebar_ui <- function(lang) sidebar(
   conditionalPanel(
     "input.source == 'custom'",
     div(class = "hyp-grid", lapply(POLLED, function(p) {
-      box <- numericInput(paste0("h_", p), poll_lab(p, lang), value = start_value[[p]],
-                          min = 0, max = 100, step = 0.1)
-      if (!p %in% UNITY_BOXES) return(box)
-      tagList(
-        conditionalPanel("!input.unity", box),
-        if (p == UNITY_BOXES[1]) conditionalPanel("input.unity", numericInput(
-          "h_UNITY", lab(UNITY, lang), value = sum(start_value[UNITY_BOXES]),
-          min = 0, max = 100, step = 0.1
-        ))
-      )
+      numericInput(paste0("h_", p), poll_lab(p, lang), value = start_value[[p]],
+                   min = 0, max = 100, step = 0.1)
     })),
     actionButton("reset", tr("reset", lang), class = "btn-sm btn-outline-secondary")
   ),
   uiOutput("scenario_note"),
-  input_switch("unity", tr("unity", lang), value = FALSE),
-  p(class = "param-help", tr("unity_help", lang)),
-  sliderInput("cat_erc", tr("cat_erc", lang), min = 0, max = 100, value = 50, step = 5,
-              post = "%"),
-  p(class = "param-help", tr("cat_help", lang)),
   accordion(
     open = FALSE,
     accordion_panel(
       tr("uncertainty", lang),
-      selectInput("sims", tr("sims", lang), c(500, 1000, 2000), selected = 1000),
+      selectInput("sims", tr("sims", lang), c(500, 1000, 2000), selected = DEFAULT_SIMS),
       p(class = "param-help", tr("help_sims", lang)),
-      sliderInput("nat_err", tr("nat_err", lang), min = 0, max = 4, value = 2, step = 0.25),
+      sliderInput("nat_err", tr("nat_err", lang), min = 0, max = 4, value = DEFAULT_NAT_ERR,
+                  step = 0.25),
       p(class = "param-help", tr("help_nat_err", lang)),
-      sliderInput("sigma", tr("sigma", lang), min = 0, max = 25, value = 12, step = 1),
+      sliderInput("sigma", tr("sigma", lang), min = 0, max = 25,
+                  value = round(100 * DEFAULT_SIGMA), step = 1),
       p(class = "param-help", tr("help_sigma", lang))
     )
   ),
@@ -212,6 +224,9 @@ lang_picker <- function(lang) {
 }
 
 ui <- function(req) {
+  # The data files are answered here (see uiPattern at the end of the file).
+  file <- export_response(export_bytes, req$PATH_INFO)
+  if (!is.null(file)) return(file)
   lang <- pick_lang(req$QUERY_STRING, req$HTTP_ACCEPT_LANGUAGE)
   page_navbar(
     title = tr("title", lang),
@@ -228,7 +243,6 @@ ui <- function(req) {
       .sq { display:inline-block; margin:1px; border-radius:3px; vertical-align:middle; }
       .sq.tier { width:15px; height:15px; border:1.5px solid; }
       .param-help { font-size:.8rem; color:#6c757d; margin-top:-.5rem; }
-      .bslib-input-switch + .param-help { margin-top:-1rem; }
       .seat-table { width:100%; font-size:.9rem; }
       .seat-table th { font-weight:600; font-size:.75rem; color:#6c757d; padding:.2rem .35rem;
                        border-bottom:1px solid #dee2e6; white-space:nowrap; }
@@ -279,7 +293,7 @@ ui <- function(req) {
           uiOutput("national"),
           hr(),
           checkboxGroupInput("coal", tr("coalition", lang), inline = TRUE,
-                             choices = party_choices(FALSE, lang),
+                             choices = party_choices(lang),
                              selected = c("PP", "VOX")),
           uiOutput("coal_out")
         )
@@ -324,74 +338,40 @@ server <- function(input, output, session) {
     for (p in POLLED) {
       updateNumericInput(session, paste0("h_", p), value = start_value[[p]])
     }
-    updateNumericInput(session, "h_UNITY", value = sum(start_value[UNITY_BOXES]))
   })
 
-  # Scenario figure of each party. With left unity on, the joint figure is
-  # shared among its members in the proportions of their own (hidden) boxes;
-  # they all follow the 2023 Sumar distribution, so the split barely matters.
+  # Scenario figure of each party.
   box_value <- function(id) {
     v <- input[[paste0("h_", id)]]
     if (is.null(v) || is.na(v)) 0 else max(v, 0)
   }
-  scenario_pct_united <- function() {
-    pct <- vapply(POLLED, box_value, numeric(1))
-    part <- if (sum(pct[UNITY_BOXES]) > 0) pct[UNITY_BOXES] else start_value[UNITY_BOXES]
-    pct[UNITY_BOXES] <- box_value(UNITY) * part / sum(part)
-    pct
-  }
-  scenario_pct <- function() {
-    if (isTRUE(input$unity)) scenario_pct_united() else vapply(POLLED, box_value, numeric(1))
-  }
+  scenario_pct <- function() vapply(POLLED, box_value, numeric(1))
 
   scenario <- reactive({
     if (input$source == "custom") {
-      c(build_target(scenario_pct(), base), list(n = NA_real_, custom = TRUE))
+      c(build_target(scenario_pct(), base), list(n = NA_real_, custom = TRUE, default = FALSE))
     } else if (input$poll %in% c("trend", "avg")) {
       n <- if (has_polls) sum(poll_n[pl$in_avg]) else NA_real_
-      c(build_target(if (input$poll == "trend") trend else avg, base), list(n = n, custom = FALSE))
+      c(build_target(if (input$poll == "trend") trend else avg, base),
+        list(n = n, custom = FALSE, default = input$poll == DEFAULT_POLL))
     } else {
       k <- as.integer(input$poll)
       c(build_target(pl$shares[k, POLLED], base, fallback = avg),
-        list(n = poll_n[k], custom = FALSE))
+        list(n = poll_n[k], custom = FALSE, default = FALSE))
     }
   }) |> debounce(500)
 
-  # Baseline the results are compared with: 2023 as it was, or with the
-  # left-unity lists added up.
-  active_base <- reactive(if (isTRUE(input$unity)) unite_lists(base) else base)
-
+  # The default view reuses the run computed at start-up (the exported one).
   sim <- reactive({
     sc <- scenario()
-    simulate_election(active_base(), sc$target, n_poll = sc$n, sims = as.integer(input$sims),
-                      nat_err = input$nat_err, sigma_prov = input$sigma / 100,
-                      podemos_to_erc = input$cat_erc / 100)
+    if (sc$default && as.integer(input$sims) == DEFAULT_SIMS &&
+        isTRUE(all.equal(input$nat_err, DEFAULT_NAT_ERR)) &&
+        isTRUE(all.equal(input$sigma / 100, DEFAULT_SIGMA))) {
+      return(default_sim)
+    }
+    simulate_election(base, sc$target, n_poll = sc$n, sims = as.integer(input$sims),
+                      nat_err = input$nat_err, sigma_prov = input$sigma / 100)
   })
-
-  # The selectors list the joint list in place of its members, keeping the
-  # user's choice where it still makes sense.
-  observeEvent(input$unity, {
-    # Scenario boxes: the joint box starts at the sum of its members, and its
-    # value is handed back to them when the switch goes off.
-    if (input$unity) {
-      updateNumericInput(session, "h_UNITY", value = round(sum(vapply(UNITY_BOXES, box_value, 0)), 1))
-    } else {
-      back <- isolate(scenario_pct_united())
-      for (p in UNITY_BOXES) updateNumericInput(session, paste0("h_", p), value = round(back[[p]], 1))
-    }
-    swap <- function(sel) {
-      if (input$unity) unique(ifelse(sel %in% UNITY_MEMBERS, UNITY, sel)) else
-        unlist(lapply(sel, function(x) if (x == UNITY) UNITY_MEMBERS else x))
-    }
-    choices <- party_choices(input$unity, lang)
-    updateCheckboxGroupInput(session, "coal", choices = choices, inline = TRUE,
-                             selected = swap(input$coal))
-    view <- swap(input$map_view)[1]
-    updateSelectInput(session, "map_view", selected = view, choices = c(
-      setNames("lead", tr("map_lead", lang)),
-      setNames(unname(choices), tr("map_seats_of", lang, names(choices)))
-    ))
-  }, ignoreInit = TRUE)
 
   output$scenario_note <- renderUI({
     sc <- scenario()
@@ -465,7 +445,7 @@ server <- function(input, output, session) {
 
   # National panel --------------------------------------------------------------
 
-  national <- reactive(summarise_seats(sim(), active_base()))
+  national <- reactive(summarise_seats(sim(), base))
 
   output$national <- renderUI({
     df <- national()
@@ -503,9 +483,9 @@ server <- function(input, output, session) {
     if (is.null(selected())) return(p(class = "text-muted", tr("prov_empty", lang)))
     i <- match(selected(), base$cpro)
     s <- sim()
-    ls <- last_seat(s, active_base(), i)
+    ls <- last_seat(s, base, i)
     tagList(
-      party_table(summarise_seats(s, active_base(), i), lang, probs = seat_probs(s, i),
+      party_table(summarise_seats(s, base, i), lang, probs = seat_probs(s, i),
                   show_p = TRUE, cpro = selected()),
       tier_legend(lang),
       p(class = "small text-muted mt-2", tr("tier_note", lang)),
@@ -576,4 +556,5 @@ server <- function(input, output, session) {
   }, striped = TRUE, spacing = "s", align = paste0("lll", strrep("r", length(POLLED) + 1)))
 }
 
-shinyApp(ui, server)
+# ui() also answers the two data files (Shiny matches the whole path).
+shinyApp(ui, server, uiPattern = "/(export/projection[.](json|csv))?")

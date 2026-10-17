@@ -5,15 +5,25 @@
 LANGS <- c("English" = "en", "Català" = "ca", "Español" = "es")
 
 # Party names that change with the language. SUMAR is the model's code for the
-# list that ran as Sumar in 2023 and runs as Frente Amplio in 2026; UNITY is
-# its joint list with Podemos in the left-unity scenario, which has its own
-# name in the three Valencian provinces.
+# list that ran as Sumar in 2023 and runs as Frente Amplio in 2026; in the
+# Canary Islands it runs with Podemos as SUMAR_CANARIAS. COMPROMIS is the joint
+# list of the three Valencian provinces. Proper names: the same in every language.
 PARTY_NAMES <- list(
   SUMAR = c(en = "Frente Amplio", ca = "Front Ampli", es = "Frente Amplio"),
-  UNITY = c(en = "Frente Amplio con Podemos", ca = "Front Ampli amb Podemos",
-            es = "Frente Amplio con Podemos")
+  COMPROMIS = c(en = "Compromís-Front Valencià", ca = "Compromís-Front Valencià",
+                es = "Compromís-Front Valencià")
 )
-UNITY_VALENCIA <- "Compromís-FA-Podemos"
+SUMAR_CANARIAS <- "Unidad del Pueblo Canario"
+
+# Name of each party code in `lang`; `info` is base$info and `cpro` the
+# province, if any (Frente Amplio has another name in the Canary Islands).
+party_label <- function(info, code, lang, cpro = NULL) {
+  out <- info[code, "label"]
+  translated <- code %in% names(PARTY_NAMES)
+  out[translated] <- vapply(code[translated], function(p) PARTY_NAMES[[p]][[lang]], "")
+  if (!is.null(cpro) && cpro %in% CANARIAS_PROV) out[code == "SUMAR"] <- SUMAR_CANARIAS
+  out
+}
 
 TR <- list(
   title         = c(en = "General election 2026", ca = "Eleccions generals 2026",
@@ -41,18 +51,6 @@ TR <- list(
                     es = "Ninguna encuesta en los últimos 3 meses: resultado de 2023"),
   reset         = c(en = "Reset to the trend estimate", ca = "Torna a l'estimació de tendència",
                     es = "Volver a la estimación de tendencia"),
-  unity         = c(en = "Left unity: single list",
-                    ca = "Unitat de l'esquerra: llista única",
-                    es = "Unidad de la izquierda: lista única"),
-  unity_help    = c(en = "Frente Amplio, Podemos and Compromís run together. The joint list gets the sum of their votes in each province, with no votes gained or lost by running together, except the Podemos votes in Catalonia that the slider below sends to ERC.",
-                    ca = "Front Ampli, Podemos i Compromís es presenten junts. La llista conjunta rep la suma dels seus vots a cada província, sense guanyar ni perdre vots pel fet d'anar junts, tret dels vots de Podemos a Catalunya que el control de sota envia a ERC.",
-                    es = "Frente Amplio, Podemos y Compromís se presentan juntos. La lista conjunta recibe la suma de sus votos en cada provincia, sin ganar ni perder votos por ir juntos, salvo los votos de Podemos en Cataluña que el control de abajo envía a ERC."),
-  cat_erc       = c(en = "Podemos voters in Catalonia: % going to ERC",
-                    ca = "Votants de Podemos a Catalunya: % que va a ERC",
-                    es = "Votantes de Podemos en Cataluña: % que va a ERC"),
-  cat_help      = c(en = "Podemos does not run in the four Catalan provinces. The votes it would get there are shared between ERC and Frente Amplio: 0 gives them all to Frente Amplio (or to the joint list under left unity), 100 all to ERC. Podemos's national share ends up below the poll figure.",
-                    ca = "Podemos no es presenta a les quatre províncies catalanes. Els vots que hi obtindria es reparteixen entre ERC i el Front Ampli: amb 0 van tots al Front Ampli (o a la llista conjunta, amb unitat de l'esquerra), amb 100 tots a ERC. El percentatge estatal de Podemos queda per sota de la xifra de l'enquesta.",
-                    es = "Podemos no se presenta en las cuatro provincias catalanas. Los votos que obtendría allí se reparten entre ERC y el Frente Amplio: con 0 van todos al Frente Amplio (o a la lista conjunta, con unidad de la izquierda), con 100 todos a ERC. El porcentaje nacional de Podemos queda por debajo de la cifra de la encuesta."),
   uncertainty   = c(en = "Uncertainty settings", ca = "Paràmetres d'incertesa",
                     es = "Parámetros de incertidumbre"),
   sims          = c(en = "Simulations", ca = "Simulacions", es = "Simulaciones"),
@@ -184,7 +182,11 @@ pick_lang <- function(query_string, accept = "") {
   if (length(hit)) hit[1] else "en"
 }
 
-fmt_date <- function(d, time = FALSE) format(d, if (time) "%d-%m-%Y %H:%M" else "%d-%m-%Y")
+# Times are shown in Spanish peninsular time, whatever the server's time zone.
+TIME_ZONE <- "Europe/Madrid"
+fmt_date <- function(d, time = FALSE) {
+  if (time) format(d, "%d-%m-%Y %H:%M", tz = TIME_ZONE) else format(d, "%d-%m-%Y")
+}
 
 # Numbers with the decimal and thousands marks of the language.
 fmt_num <- function(x, lang, digits = 1) {

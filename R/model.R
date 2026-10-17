@@ -4,6 +4,13 @@
 MAX_REL_SD <- 0.30  # cap on the national error of a party, on the logit scale
 MIN_REST   <- 0.01  # floor for lists not polled + blank votes
 
+# Default uncertainty settings: the sidebar starts here, and the exported
+# projection (R/export.R) always uses them.
+DEFAULT_SIMS    <- 1000
+DEFAULT_NAT_ERR <- 2     # points, for a party at 30%
+DEFAULT_SIGMA   <- 0.12  # provincial deviation, log scale
+SIM_SEED        <- 2026
+
 TREND_HALF_LIFE <- 30  # days after which a poll weighs half in the trend
 TREND_MIN_POLLS <- 8   # fewer polls than this for a party: no trend
 
@@ -101,27 +108,13 @@ dhondt <- function(V, n) {
   seats
 }
 
-# Baseline for the "left unity" scenario: the 2023 reference of the joint list
-# is the sum of its members, and simulate_election() adds up their votes.
-unite_lists <- function(base) {
-  for (m in c("votes23", "seats23")) {
-    base[[m]][, UNITY] <- rowSums(base[[m]][, UNITY_MEMBERS])
-    base[[m]][, UNITY_MEMBERS] <- 0
-  }
-  base$nat23 <- colSums(base$votes23) / sum(base$valid)
-  base$united <- TRUE
-  base
-}
-
 # Runs the central projection plus `sims` Monte Carlo draws.
 #   n_poll     sample size behind the target (NA = no sampling error)
 #   nat_err    non-sampling national error, in points for a party at 30%
 #   sigma_prov sd of the provincial deviation from proportional swing (log scale)
-#   podemos_to_erc  share of Podemos's votes that goes to ERC where it does not
-#              run (the rest goes to Frente Amplio, or to the joint list)
-simulate_election <- function(base, target, n_poll = NA, sims = 1000,
-                              nat_err = 2, sigma_prov = 0.12, podemos_to_erc = 0.5,
-                              seed = 2026) {
+simulate_election <- function(base, target, n_poll = NA, sims = DEFAULT_SIMS,
+                              nat_err = DEFAULT_NAT_ERR, sigma_prov = DEFAULT_SIGMA,
+                              seed = SIM_SEED) {
   set.seed(seed)
   S <- sims + 1L  # row 1 carries no noise: the central projection
   I <- nrow(base$seed)
@@ -143,22 +136,21 @@ simulate_election <- function(base, target, n_poll = NA, sims = 1000,
   w <- base$valid / sum(base$valid)
   A <- rake(array(rep(base$seed, each = S), c(S, I, P)) * exp(E), w, nat)
 
-  # Podemos is projected everywhere like any other party; where it does not
-  # run, its votes are then handed to ERC and Frente Amplio. This comes before
-  # the left-unity pooling, so there the Frente Amplio part ends in the joint list.
-  i <- match(PODEMOS_ABSENT, base$cpro)
-  freed <- A[, i, match("PODEMOS", cols)]
-  A[, i, match("ERC", cols)] <- A[, i, match("ERC", cols)] + freed * podemos_to_erc
-  A[, i, match("SUMAR", cols)] <- A[, i, match("SUMAR", cols)] + freed * (1 - podemos_to_erc)
-  A[, i, match("PODEMOS", cols)] <- 0
-
-  # Left unity: each member is projected on its own, then their votes are
-  # pooled province by province before the seats are allocated.
-  if (isTRUE(base$united)) {
-    members <- match(UNITY_MEMBERS, cols)
-    A[, , match(UNITY, cols)] <- rowSums(A[, , members], dims = 2)
-    A[, , members] <- 0
+  # Podemos is projected everywhere like any other party. Where it does not run
+  # on its own, its votes are then handed over: half to ERC and half to Frente
+  # Amplio in Catalonia, all to the joint list it belongs to in the Valencian
+  # provinces and the Canary Islands.
+  pod <- match("PODEMOS", cols)
+  give <- function(A, prov, to, frac) {
+    i <- match(prov, base$cpro)
+    j <- match(to, cols)
+    A[, i, j] <- A[, i, j] + A[, i, pod] * frac
+    A
   }
+  A <- give(A, PODEMOS_ABSENT, "ERC", PODEMOS_TO_ERC)
+  A <- give(A, PODEMOS_ABSENT, "SUMAR", 1 - PODEMOS_TO_ERC)
+  for (to in names(PODEMOS_JOINED)) A <- give(A, PODEMOS_JOINED[[to]], to, 1)
+  A[, match(c(PODEMOS_ABSENT, unlist(PODEMOS_JOINED)), base$cpro), pod] <- 0
 
   seats <- array(0L, c(S, I, P))
   share <- array(0, c(S, I, P))

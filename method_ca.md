@@ -12,7 +12,7 @@ Aquesta aplicació converteix una estimació de vot **estatal** en una projecci�
 - Les candidatures que cap empresa publica (Nueva Canarias, UPL, Teruel Existe, Soria ¡Ya! i d'altres) mantenen el seu **percentatge estatal de 2023**. El que queda va a un grup residual d'«altres + vot en blanc», que no obté mai escons.
 - **La CUP i Aliança Catalana** no es presenten a aquestes eleccions i no es modelen. Els vots de la CUP de 2023 formen part del grup residual.
 - **Front Ampli** (Frente Amplio) és el nom amb què Sumar es presenta el 2026. Les enquestes que encara el recullen com a Sumar es llegeixen com a Front Ampli, i la seva referència de 2023 i el seu perfil territorial són els de Sumar.
-- **Compromís** és el nom de la candidatura del Front Ampli a Alacant, Castelló i València. Les enquestes es recullen amb tots dos junts, de manera que la xifra conjunta es reparteix en proporció als seus vots de 2023, i els escons obtinguts en aquestes tres províncies es mostren com a Compromís.
+- **Compromís** va ser la candidatura de Sumar a Alacant, Castelló i València el 2023. Les enquestes recullen el Front Ampli i Compromís junts, de manera que la xifra conjunta es reparteix en proporció als seus vots de 2023. El 2026 la candidatura d'aquestes tres províncies és **Compromís-Front Valencià** (vegeu més avall).
 - Una enquesta que no publica la mida de la mostra es tracta com si tingués **1.000 entrevistes**.
 
 ### 2. Del vot estatal a les províncies: swing proporcional
@@ -27,7 +27,13 @@ Tres partits no fan servir el seu propi resultat de 2023 com a perfil territoria
 - **SALF** no existia el 2023 i es distribueix com Vox 2023. És una aproximació poc fina; amb prop d'un 2% estatal gairebé no afecta els escons.
 - **Adelante Andalucía** només es presenta a les vuit províncies andaluses. El seu percentatge estatal s'hi reparteix en proporció al seu resultat a les últimes eleccions andaluses (fitxer `data/aa_prior.csv`), i no rep vots enlloc més.
 
-**Podemos a Catalunya.** Podemos no es presenta a Barcelona, Girona, Lleida ni Tarragona. El model primer el projecta allà com a qualsevol altre lloc, i després passa aquests vots a ERC i al Front Ampli en la proporció que fixa el control lliscant (la meitat a cadascun per defecte; amb 0 tot va al Front Ampli, amb 100 tot a ERC). Com que la xifra de Podemos a les enquestes es reparteix per tot l'Estat abans d'aquest pas, el seu percentatge estatal queda una mica per sota de l'enquesta, i els d'ERC i el Front Ampli una mica per sobre. Si les empreses ja compten aquests votants en altres partits, aquest pas els mou dues vegades. El control també s'aplica en l'escenari d'unitat de l'esquerra: la part que no va a ERC acaba a la llista conjunta.
+**On Podemos no es presenta sol.** Podemos i el Front Ampli es presenten per separat a la major part de l'Estat, amb tres excepcions. El model primer projecta Podemos a totes les províncies com qualsevol altre partit, i després en passa els vots allà on no té candidatura pròpia:
+
+- **Catalunya** (Barcelona, Girona, Lleida, Tarragona): Podemos no s'hi presenta. Els seus vots es reparteixen **meitat per a ERC i meitat per al Front Ampli**. Aquest repartiment és fix.
+- **Alacant, Castelló i València**: Compromís, el Front Ampli i Podemos es presenten junts com a **Compromís-Front Valencià**. La seva referència de 2023 és la candidatura de Sumar d'aquestes províncies (Compromís), i s'hi sumen els vots de Podemos.
+- **Las Palmas i Santa Cruz de Tenerife**: el Front Ampli i Podemos es presenten junts com a **Unidad del Pueblo Canario**, i els vots de Podemos se sumen a la projecció del Front Ampli. A la taula estatal, aquesta candidatura es compta dins del Front Ampli.
+
+Les candidatures conjuntes conserven tots els vots dels seus membres: ni atrauen votants nous ni en perden pel fet d'anar junts. Com que la xifra de Podemos a les enquestes es reparteix per tot l'Estat abans d'aquests passos, el seu percentatge estatal queda força per sota de l'enquesta, i els del Front Ampli, Compromís-Front Valencià i ERC per sobre. Si les empreses ja compten els votants catalans de Podemos en altres partits, el pas de Catalunya els mou dues vegades.
 
 ### 3. Escons: D'Hondt a cada província
 
@@ -42,17 +48,17 @@ La projecció central és l'única execució sense soroll. Al seu voltant, l'apl
 
 Cada elecció simulada passa per D'Hondt. L'**interval del 90%** va del percentil 5 al 95 dels escons simulats, i les probabilitats (un escó en una província, una majoria per a un grup de partits) són la proporció de simulacions en què es dona el fet. La projecció central i la mitjana de les simulacions poden diferir en un o dos escons.
 
-### Escenari d'unitat de l'esquerra
-
-L'interruptor **Unitat de l'esquerra** mostra què passaria si el Front Ampli, Podemos i Compromís es presentessin en una sola llista, que es mostra com a «Front Ampli amb Podemos» («Compromís-FA-Podemos» a Alacant, Castelló i València). Cadascun es projecta per separat, exactament com s'ha descrit, i després els seus vots se sumen a cada província abans d'aplicar D'Hondt. Això suposa que la llista conjunta conserva tots els vots dels seus membres: ni atrau votants nous ni en perd pel fet d'anar junts. L'única excepció és Catalunya, on la part dels vots de Podemos que fixa el control continua anant a ERC. La diferència d'escons prové només de desaprofitar menys vots a les províncies petites i mitjanes. La columna 2023 de la llista conjunta és el resultat de Sumar d'aquell any, quan tots tres es van presentar junts.
-
 ### El que el model no sap
 
-- Suposa les **mateixes candidatures** que el 2023, tret dels canvis descrits més amunt (la separació Sumar / Podemos, SALF, Adelante Andalucía i l'absència de la CUP). No es modelen altres coalicions ni escissions.
+- Suposa les **mateixes candidatures** que el 2023, tret dels canvis descrits més amunt (la separació Front Ampli / Podemos i les seves excepcions, SALF, Adelante Andalucía i l'absència de la CUP). No es modelen altres coalicions ni escissions.
 - Els errors se sortegen de manera **independent** entre partits i províncies. Els errors reals estan correlacionats (un partit que supera les enquestes ho sol fer en regions senceres), de manera que els intervals dels blocs probablement són una mica massa estrets.
 - Les enquestes estatals mesuren malament els **partits d'àmbit no estatal**: una diferència de 0,2 punts per a ERC, Junts, EH Bildu o el PNB mou diversos escons.
 - El patró provincial dels **partits nous o que creixen de pressa** és la baula més feble: el swing proporcional dona a Vox els guanys més grans allà on ja era fort.
 - L'**estimació de tendència** suposa que cada partit es mou en línia recta durant els tres mesos i que les empreses, de mitjana, l'encerten. Un canvi sobtat en els últims dies només es recull parcialment, i un biaix compartit per totes les empreses no es corregeix. La mitjana d'enquestes no es pondera per mida de mostra ni per data.
+
+### Fitxers de dades
+
+Els fitxers de dades d'aquesta aplicació es poden trobar en [JSON](export/projection.json) i [CSV](export/projection.csv).
 
 Fonts: enquestes, [Viquipèdia](https://en.wikipedia.org/wiki/Opinion_polling_for_the_2026_Spanish_general_election), amb el [Poll of Polls de POLITICO Europe](https://www.politico.eu/europe-poll-of-polls/spain/) com a alternativa; resultats, Ministeri de l'Interior; mapa, `mapSpain` (les Canàries, desplaçades al costat de la península).
 

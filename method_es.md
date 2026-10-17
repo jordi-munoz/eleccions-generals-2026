@@ -12,7 +12,7 @@ Esta aplicación convierte una estimación de voto **nacional** en una proyecci�
 - Las candidaturas que ninguna empresa publica (Nueva Canarias, UPL, Teruel Existe, Soria ¡Ya! y otras) mantienen su **porcentaje nacional de 2023**. Lo que queda va a un grupo residual de «otros + voto en blanco», que nunca obtiene escaños.
 - **La CUP y Aliança Catalana** no se presentan a estas elecciones y no se modelan. Los votos de la CUP de 2023 forman parte del grupo residual.
 - **Frente Amplio** es el nombre con el que Sumar se presenta en 2026. Las encuestas que todavía lo recogen como Sumar se leen como Frente Amplio, y su referencia de 2023 y su perfil territorial son los de Sumar.
-- **Compromís** es el nombre de la candidatura del Frente Amplio en Alicante, Castellón y Valencia. Las encuestas se recogen con ambos juntos, de modo que la cifra conjunta se reparte en proporción a sus votos de 2023, y los escaños obtenidos en esas tres provincias se muestran como Compromís.
+- **Compromís** fue la candidatura de Sumar en Alicante, Castellón y Valencia en 2023. Las encuestas recogen al Frente Amplio y Compromís juntos, de modo que la cifra conjunta se reparte en proporción a sus votos de 2023. En 2026 la candidatura de esas tres provincias es **Compromís-Front Valencià** (véase más abajo).
 - Una encuesta que no publica el tamaño de la muestra se trata como si tuviera **1.000 entrevistas**.
 
 ### 2. Del voto nacional a las provincias: swing proporcional
@@ -27,7 +27,13 @@ Tres partidos no usan su propio resultado de 2023 como perfil territorial:
 - **SALF** no existía en 2023 y se distribuye como Vox 2023. Es una aproximación poco fina; con cerca de un 2% nacional apenas afecta a los escaños.
 - **Adelante Andalucía** solo se presenta en las ocho provincias andaluzas. Su porcentaje nacional se reparte entre ellas en proporción a su resultado en las últimas elecciones andaluzas (fichero `data/aa_prior.csv`), y no recibe votos en ningún otro lugar.
 
-**Podemos en Cataluña.** Podemos no se presenta en Barcelona, Girona, Lleida ni Tarragona. El modelo primero lo proyecta allí como en cualquier otro lugar, y después pasa esos votos a ERC y al Frente Amplio en la proporción que fija el control deslizante (la mitad a cada uno por defecto; con 0 todo va al Frente Amplio, con 100 todo a ERC). Como la cifra de Podemos en las encuestas se reparte por toda España antes de este paso, su porcentaje nacional queda algo por debajo de la encuesta, y los de ERC y el Frente Amplio algo por encima. Si las empresas ya cuentan a esos votantes en otros partidos, este paso los mueve dos veces. El control también se aplica en el escenario de unidad de la izquierda: la parte que no va a ERC acaba en la lista conjunta.
+**Donde Podemos no se presenta solo.** Podemos y el Frente Amplio se presentan por separado en la mayor parte de España, con tres excepciones. El modelo primero proyecta Podemos en todas las provincias como cualquier otro partido, y después pasa sus votos allí donde no tiene candidatura propia:
+
+- **Cataluña** (Barcelona, Girona, Lleida, Tarragona): Podemos no se presenta. Sus votos se reparten **a partes iguales entre ERC y el Frente Amplio**. Este reparto es fijo.
+- **Alicante, Castellón y Valencia**: Compromís, el Frente Amplio y Podemos se presentan juntos como **Compromís-Front Valencià**. Su referencia de 2023 es la candidatura de Sumar en esas provincias (Compromís), y se le suman los votos de Podemos.
+- **Las Palmas y Santa Cruz de Tenerife**: el Frente Amplio y Podemos se presentan juntos como **Unidad del Pueblo Canario**, y los votos de Podemos se suman a la proyección del Frente Amplio. En la tabla nacional, esta candidatura se cuenta dentro del Frente Amplio.
+
+Las candidaturas conjuntas conservan todos los votos de sus miembros: ni atraen votantes nuevos ni pierden ninguno por ir juntos. Como la cifra de Podemos en las encuestas se reparte por toda España antes de estos pasos, su porcentaje nacional queda bastante por debajo de la encuesta, y los del Frente Amplio, Compromís-Front Valencià y ERC por encima. Si las empresas ya cuentan a los votantes catalanes de Podemos en otros partidos, el paso de Cataluña los mueve dos veces.
 
 ### 3. Escaños: D'Hondt en cada provincia
 
@@ -42,17 +48,17 @@ La proyección central es la única ejecución sin ruido. A su alrededor, la apl
 
 Cada elección simulada pasa por D'Hondt. El **intervalo del 90%** va del percentil 5 al 95 de los escaños simulados, y las probabilidades (un escaño en una provincia, una mayoría para un grupo de partidos) son la proporción de simulaciones en las que ocurre el hecho. La proyección central y la media de las simulaciones pueden diferir en uno o dos escaños.
 
-### Escenario de unidad de la izquierda
-
-El interruptor **Unidad de la izquierda** muestra qué pasaría si el Frente Amplio, Podemos y Compromís se presentaran en una sola lista, que se muestra como «Frente Amplio con Podemos» («Compromís-FA-Podemos» en Alicante, Castellón y Valencia). Cada uno se proyecta por separado, exactamente como se ha descrito, y después sus votos se suman en cada provincia antes de aplicar D'Hondt. Esto supone que la lista conjunta conserva todos los votos de sus miembros: ni atrae votantes nuevos ni pierde ninguno por ir juntos. La única excepción es Cataluña, donde la parte de los votos de Podemos que fija el control sigue yendo a ERC. La diferencia de escaños proviene solo de desperdiciar menos votos en las provincias pequeñas y medianas. La columna 2023 de la lista conjunta es el resultado de Sumar de aquel año, cuando los tres se presentaron juntos.
-
 ### Lo que el modelo no sabe
 
-- Supone las **mismas candidaturas** que en 2023, salvo los cambios descritos más arriba (la separación Sumar / Podemos, SALF, Adelante Andalucía y la ausencia de la CUP). No se modelan otras coaliciones ni escisiones.
+- Supone las **mismas candidaturas** que en 2023, salvo los cambios descritos más arriba (la separación Frente Amplio / Podemos y sus excepciones, SALF, Adelante Andalucía y la ausencia de la CUP). No se modelan otras coaliciones ni escisiones.
 - Los errores se sortean de forma **independiente** entre partidos y provincias. Los errores reales están correlacionados (un partido que supera a las encuestas suele hacerlo en regiones enteras), de modo que los intervalos de los bloques probablemente son algo demasiado estrechos.
 - Las encuestas nacionales miden mal a los **partidos de ámbito no estatal**: una diferencia de 0,2 puntos para ERC, Junts, EH Bildu o el PNV mueve varios escaños.
 - El patrón provincial de los **partidos nuevos o que crecen deprisa** es el eslabón más débil: el swing proporcional da a Vox las mayores ganancias allí donde ya era fuerte.
 - La **estimación de tendencia** supone que cada partido se mueve en línea recta durante los tres meses y que las empresas, de media, aciertan. Un cambio brusco en los últimos días solo se recoge en parte, y un sesgo compartido por todas las empresas no se corrige. La media de encuestas no se pondera por tamaño de muestra ni por fecha.
+
+### Ficheros de datos
+
+Los ficheros de datos de esta aplicación se pueden encontrar en [JSON](export/projection.json) y [CSV](export/projection.csv).
 
 Fuentes: encuestas, [Wikipedia](https://en.wikipedia.org/wiki/Opinion_polling_for_the_2026_Spanish_general_election), con el [Poll of Polls de POLITICO Europe](https://www.politico.eu/europe-poll-of-polls/spain/) como alternativa; resultados, Ministerio del Interior; mapa, `mapSpain` (Canarias, desplazadas junto a la península).
 

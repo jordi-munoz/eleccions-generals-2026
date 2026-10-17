@@ -12,7 +12,7 @@ This app turns a **national** vote estimate into a seat projection for the Congr
 - Lists that no pollster reports (Nueva Canarias, UPL, Teruel Existe, Soria ¡Ya!, and others) keep their **2023 national share**. Whatever is left goes to a residual "others + blank votes" group, which never wins seats.
 - **CUP and Aliança Catalana** do not run in this election and are not modelled. CUP's 2023 votes are part of the residual group.
 - **Frente Amplio** is the name under which Sumar runs in 2026. Polls that still report it as Sumar are read as Frente Amplio, and its 2023 reference and territorial profile are those of Sumar.
-- **Compromís** is the name of the Frente Amplio list in Alicante, Castellón and Valencia. Polls are recorded with both together, so the joint figure is split in proportion to their 2023 votes, and the seats won in those three provinces are shown as Compromís.
+- **Compromís** ran as the Sumar list in Alicante, Castellón and Valencia in 2023. Polls are recorded with Frente Amplio and Compromís together, so the joint figure is split in proportion to their 2023 votes. In 2026 the list in those three provinces is **Compromís-Front Valencià** (see below).
 - A poll that does not publish its sample size is treated as having **1,000 interviews**.
 
 ### 2. From national vote to provinces: proportional swing
@@ -27,7 +27,13 @@ Three parties do not use their own 2023 result as territorial profile:
 - **SALF** did not exist in 2023 and is distributed like Vox 2023. This is a rough proxy; at around 2% nationally it barely affects seats.
 - **Adelante Andalucía** runs only in the eight Andalusian provinces. Its national share is distributed among them in proportion to its result in the last Andalusian regional election (file `data/aa_prior.csv`), and it gets no votes elsewhere.
 
-**Podemos in Catalonia.** Podemos does not run in Barcelona, Girona, Lleida or Tarragona. The model first projects it there like anywhere else, and then hands those votes to ERC and Frente Amplio in the proportion set by the slider (half each by default; 0 gives everything to Frente Amplio, 100 everything to ERC). Because the poll figure for Podemos is spread over the whole country before this step, its national share ends up somewhat below the poll, and those of ERC and Frente Amplio somewhat above. If pollsters already count those voters under other parties, this moves them twice. The slider also applies under the left unity scenario: the part that does not go to ERC ends in the joint list.
+**Where Podemos does not run on its own.** Podemos and Frente Amplio run as separate lists in most of Spain, with three exceptions. The model first projects Podemos in every province like any other party, and then hands its votes over where it has no list of its own:
+
+- **Catalonia** (Barcelona, Girona, Lleida, Tarragona): Podemos does not run. Its votes are split **50-50 between ERC and Frente Amplio**. This split is fixed.
+- **Alicante, Castellón and Valencia**: Compromís, Frente Amplio and Podemos run together as **Compromís-Front Valencià**. Its 2023 reference is the Sumar list of those provinces (Compromís), and Podemos's votes are added to it.
+- **Las Palmas and Santa Cruz de Tenerife**: Frente Amplio and Podemos run together as **Unidad del Pueblo Canario**, and Podemos's votes are added to the Frente Amplio projection. In the national table this list is counted under Frente Amplio.
+
+The joint lists keep all the votes of their members: they neither attract new voters nor lose any by running together. Because the poll figure for Podemos is spread over the whole country before these steps, its national share ends up well below the poll, and those of Frente Amplio, Compromís-Front Valencià and ERC above. If pollsters already count Podemos's Catalan voters under other parties, the Catalan step moves them twice.
 
 ### 3. Seats: D'Hondt in each province
 
@@ -42,17 +48,17 @@ The central projection is the single run without noise. Around it, the app simul
 
 Each simulated election goes through D'Hondt. The **90% interval** is the 5th–95th percentile of simulated seats, and probabilities (a seat in a province, a majority for a group of parties) are the share of simulations in which the event happens. The central projection and the simulation mean can differ by a seat or two.
 
-### Left unity scenario
-
-The switch **Left unity** shows what would happen if Frente Amplio, Podemos and Compromís ran as a single list, shown as "Frente Amplio con Podemos" ("Compromís-FA-Podemos" in Alicante, Castellón and Valencia). Each of them is projected separately, exactly as above, and their votes are then added up in every province before D'Hondt is applied. This assumes the joint list keeps all the votes of its members: it neither attracts new voters nor loses any by running together. The one exception is Catalonia, where the share of Podemos's votes set by the slider still goes to ERC. The difference in seats comes only from wasting fewer votes in small and medium-sized provinces. The 2023 column for the joint list is the Sumar result of that year, when the three ran together.
-
 ### What the model does not know
 
-- It assumes the **same lists** as in 2023, apart from the changes described above (the Sumar / Podemos split, SALF, Adelante Andalucía, and CUP not running). Other coalitions or splits are not modelled.
+- It assumes the **same lists** as in 2023, apart from the changes described above (the Frente Amplio / Podemos split and its exceptions, SALF, Adelante Andalucía, and CUP not running). Other coalitions or splits are not modelled.
 - Errors are drawn **independently** across parties and provinces. Real errors are correlated (a party beating its polls tends to do so in whole regions), so the intervals for regional blocs are probably somewhat too narrow.
 - **Regional parties** are poorly measured by national polls: a difference of 0.2 points for ERC, Junts, EH Bildu or the PNV moves several seats.
 - The provincial pattern of **new or fast-growing parties** is the weakest link: proportional swing gives Vox its largest gains where it was already strong.
 - The **trend estimate** assumes each party moves in a straight line over the three months and that pollsters are right on average. A sudden change in the last few days is only partly picked up, and a bias shared by all pollsters is not corrected. The poll average is not weighted by sample size or date.
+
+### Data files
+
+Data files for this app can be found in [JSON](export/projection.json) and [CSV](export/projection.csv).
 
 Sources: polls, [Wikipedia](https://en.wikipedia.org/wiki/Opinion_polling_for_the_2026_Spanish_general_election), with [POLITICO Europe Poll of Polls](https://www.politico.eu/europe-poll-of-polls/spain/) as fallback; results, Ministerio del Interior; map, `mapSpain` (Canary Islands moved next to the peninsula).
 

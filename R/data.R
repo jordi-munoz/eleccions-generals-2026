@@ -28,7 +28,8 @@ SEAT_CHANGES <- c("28" = +1L, "11" = -1L)
 # profile of the closest list. Adelante Andalucía takes its profile from the
 # Andalusian regional election (AA_PRIOR) and only runs in Andalusia.
 # Compromís is the Sumar list of the three Valencian provinces: polls publish
-# both together (see INSIDE), so it has no poll column of its own.
+# both together (see INSIDE), so it has no poll column of its own. In 2026 it
+# is the joint list Compromís-Front Valencià there.
 PARTIES <- data.frame(
   code   = c("PP", "PSOE", "VOX", "SUMAR", "PODEMOS", "SALF", "ERC", "JUNTS",
              "PNV", "BILDU", "BNG", "CC", "UPN", "AA", "COMPROMIS"),
@@ -49,14 +50,17 @@ BORROWED <- c("PODEMOS", "SALF")  # no 2023 result of their own
 INSIDE <- c(COMPROMIS = "SUMAR")  # polled inside another party's figure
 COMPROMIS_PROV <- c("03", "12", "46")  # Alacant, Castelló, València
 
-# Podemos does not run in the four Catalan provinces: the votes it would get
-# there are shared between ERC and Frente Amplio (see simulate_election).
-PODEMOS_ABSENT <- c("08", "17", "25", "43")  # Barcelona, Girona, Lleida, Tarragona
+CANARIAS_PROV <- c("35", "38")  # Las Palmas, Santa Cruz de Tenerife
 
-# "Left unity" scenario: these lists run as one. The joint list has its own
-# column, empty unless the scenario is switched on (see unite_lists).
-UNITY <- "UNITY"
-UNITY_MEMBERS <- c("SUMAR", "PODEMOS", "COMPROMIS")
+# Podemos runs on its own except in these provinces (see simulate_election):
+# - in Catalonia it does not run, and its votes go half to ERC, half to
+#   Frente Amplio;
+# - in the Valencian provinces it runs inside Compromís-Front Valencià, and in
+#   the Canary Islands inside a joint list with Frente Amplio: its votes are
+#   added to that list (the COMPROMIS and SUMAR columns there).
+PODEMOS_ABSENT <- c("08", "17", "25", "43")  # Barcelona, Girona, Lleida, Tarragona
+PODEMOS_TO_ERC <- 0.5
+PODEMOS_JOINED <- list(COMPROMIS = COMPROMIS_PROV, SUMAR = CANARIAS_PROV)
 NOT_RUNNING <- c("CUP-PR")        # 2023 lists that do not run in 2026
 OTHERS <- "OTHERS"
 
@@ -107,9 +111,9 @@ build_baseline <- function(path = RESULTS_2023) {
   votes23[, BORROWED] <- 0
   votes23[COMPROMIS_PROV, "SUMAR"] <- 0
   votes23[setdiff(r$cpro, COMPROMIS_PROV), "COMPROMIS"] <- 0
-  votes23 <- cbind(votes23, 0, r$valid - rowSums(votes23))
-  colnames(votes23)[ncol(votes23) - 1:0] <- c(UNITY, OTHERS)
-  seats23 <- cbind(r$seats[, PARTIES$col23, drop = FALSE], r$seats[, local, drop = FALSE], 0, 0)
+  votes23 <- cbind(votes23, r$valid - rowSums(votes23))
+  colnames(votes23)[ncol(votes23)] <- OTHERS
+  seats23 <- cbind(r$seats[, PARTIES$col23, drop = FALSE], r$seats[, local, drop = FALSE], 0)
   colnames(seats23) <- colnames(votes23)
   seats23[, BORROWED] <- 0
   seats23[COMPROMIS_PROV, "SUMAR"] <- 0
@@ -132,8 +136,7 @@ build_baseline <- function(path = RESULTS_2023) {
                label = ifelse(local %in% names(LOCAL_LABELS), LOCAL_LABELS[local], local),
                colour = grey[seq_along(local)],
                stringsAsFactors = FALSE),
-    data.frame(code = c(UNITY, OTHERS), label = c("Sumar + Podemos", "Others + blank"),
-               colour = c(PARTIES$colour[PARTIES$code == "SUMAR"], "#C9C9C9"),
+    data.frame(code = OTHERS, label = "Others + blank", colour = "#C9C9C9",
                stringsAsFactors = FALSE)
   )
   rownames(info) <- info$code
@@ -190,10 +193,12 @@ read_wikipedia_polls <- function(url = WIKI_URL) {
 
   out <- list()
   for (tb in xml2::xml_find_all(doc, "//table[contains(@class, 'wikitable')]")) {
-    # These tables follow a heading whose id is just the year (later sections
-    # get ids such as 2026_2).
+    # These tables follow a heading whose id is the year, possibly with a
+    # note in brackets ("2026_(after_FA)", "2026_(before_FA)"). Later
+    # sections get ids such as 2026_2 and are skipped.
     id <- xml2::xml_attr(xml2::xml_find_first(tb, "preceding::*[self::h4 or self::h5 or self::h6][1]"), "id")
-    if (is.na(id) || !grepl("^20\\d\\d$", id)) next
+    if (is.na(id) || !grepl("^20\\d\\d(_\\(.*\\))?$", id)) next
+    year <- as.integer(substr(id, 1, 4))
 
     head <- xml2::xml_find_all(xml2::xml_find_first(tb, ".//tr"), "./th")
     if (!any(grepl("Fieldwork", xml2::xml_text(head)))) next
@@ -210,6 +215,7 @@ read_wikipedia_polls <- function(url = WIKI_URL) {
                          stringsAsFactors = FALSE)
     cols <- trimws(unlist(raw[1, ]))
     body <- raw[-(1:2), , drop = FALSE]
+    if (nrow(body) == 0) next  # a new table with no polls yet
 
     shares <- vapply(PARTIES$wiki, function(pat) {
       j <- if (is.na(pat)) integer(0) else grep(pat, cols)
@@ -217,7 +223,7 @@ read_wikipedia_polls <- function(url = WIKI_URL) {
     }, numeric(nrow(body)))
     shares <- matrix(shares, nrow(body), dimnames = list(NULL, PARTIES$code))
     df <- data.frame(
-      date = wiki_end_date(trimws(body[[grep("Fieldwork", cols)[1]]]), as.integer(id)),
+      date = wiki_end_date(trimws(body[[grep("Fieldwork", cols)[1]]]), year),
       firm = trimws(body[[1]]),
       n    = wiki_number(body[[grep("Sample", cols)[1]]]),
       shares, check.names = FALSE, stringsAsFactors = FALSE
