@@ -1,0 +1,10 @@
+name: eleccions-generals-2026
+title: Eleccions generals 2026
+username: jordi
+account: jordi
+server: connect.posit.cloud
+hostUrl: https://api.connect.posit.cloud/v1
+appId: 01a134f6-f370-5588-3fa4-78361b68e2a7
+bundleId:
+url: https://connect.posit.cloud/jordi/content/01a134f6-f370-5588-3fa4-78361b68e2a7
+version: 1
