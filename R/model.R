@@ -23,7 +23,8 @@ TREND_MIN_POLLS <- 8   # fewer polls than this for a party: no trend
 # the party keeps its value in `fallback`.
 trend_estimate <- function(dates, pollster, shares, fallback) {
   level <- trend_fit(dates, pollster, shares)["level", ]
-  ifelse(is.na(level), fallback[colnames(shares)], level)
+  # setNames: with a single party the line above drops the name.
+  setNames(ifelse(is.na(level), fallback[colnames(shares)], level), colnames(shares))
 }
 
 # The fitted lines themselves: for each party, `level` on the date of the

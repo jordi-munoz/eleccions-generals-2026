@@ -16,10 +16,15 @@ files <- c(
   "app.R",
   list.files("R", full.names = TRUE),
   list.files(pattern = "^(method|dhondt)_.*[.]md$"),
-  file.path("data", c("provinces.rds", "aa_prior.csv", "polls_cache.json")),
+  file.path("data", c("provinces.rds", "aa_prior.csv")),
   file.path("PROV_02_202307_1", "PROV_02_202307_1.xlsx")
 )
 stopifnot(all(file.exists(files)))
+# The local copy of POLITICO's polls is not in the repository; ship it when
+# present, as a last fallback if both live sources fail.
+if (file.exists(file.path("data", "polls_cache.json"))) {
+  files <- c(files, file.path("data", "polls_cache.json"))
+}
 
 deployApp(
   appDir = ".",

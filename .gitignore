@@ -1,0 +1,26 @@
+# Working notes, kept local
+CLAUDE.md
+.claude/
+
+# Written by the app at start-up
+export/
+
+# Local copy of POLITICO's poll data (fallback only; not redistributed)
+data/polls_cache.json
+
+# R artifacts
+.Rhistory
+.RData
+.Rdata
+.Rproj.user/
+*.Rproj
+.httr-oauth
+.Renviron
+
+# testthat
+tests/testthat/_snaps/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
