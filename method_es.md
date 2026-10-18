@@ -58,7 +58,7 @@ Cada elección simulada pasa por D'Hondt. El **intervalo del 90%** va del percen
 
 ### Ficheros de datos
 
-Los ficheros de datos de esta aplicación se pueden encontrar en [JSON](export/projection.json) y [CSV](export/projection.csv).
+Los ficheros de datos de esta aplicación se pueden encontrar en [JSON](https://jordi-munoz.github.io/eleccions-generals-2026/projection.json) y [CSV](https://jordi-munoz.github.io/eleccions-generals-2026/projection.csv).
 
 Fuentes: encuestas, [Wikipedia](https://en.wikipedia.org/wiki/Opinion_polling_for_the_2026_Spanish_general_election), con el [Poll of Polls de POLITICO Europe](https://www.politico.eu/europe-poll-of-polls/spain/) como alternativa; resultados, Ministerio del Interior; mapa, `mapSpain` (Canarias, desplazadas junto a la península).
 

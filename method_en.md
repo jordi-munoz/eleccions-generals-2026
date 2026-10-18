@@ -58,7 +58,7 @@ Each simulated election goes through D'Hondt. The **90% interval** is the 5th–
 
 ### Data files
 
-Data files for this app can be found in [JSON](export/projection.json) and [CSV](export/projection.csv).
+Data files for this app can be found in [JSON](https://jordi-munoz.github.io/eleccions-generals-2026/projection.json) and [CSV](https://jordi-munoz.github.io/eleccions-generals-2026/projection.csv).
 
 Sources: polls, [Wikipedia](https://en.wikipedia.org/wiki/Opinion_polling_for_the_2026_Spanish_general_election), with [POLITICO Europe Poll of Polls](https://www.politico.eu/europe-poll-of-polls/spain/) as fallback; results, Ministerio del Interior; map, `mapSpain` (Canary Islands moved next to the peninsula).
 
