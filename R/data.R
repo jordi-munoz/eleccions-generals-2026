@@ -158,9 +158,22 @@ build_baseline <- function(path = RESULTS_2023) {
 
 # --- Polls: Wikipedia --------------------------------------------------------
 
-# The table lists these next to genuine polls: Electomanía's weekly panel is a
-# running estimate, and "CIS (firm)" rows are re-estimates of CIS fieldwork.
-WIKI_EXCLUDE <- "Electoman|EM-Analytics|^CIS\\s*\\("
+# The table lists these next to genuine polls. "CIS (firm)" rows are
+# re-estimates of CIS fieldwork and are left out. Electomanía publishes a
+# weekly running estimate: only its latest one is kept, so that it counts as
+# one pollster like the others (Jordi, 2026-10-18).
+WIKI_EXCLUDE <- "^CIS\\s*\\("
+WIKI_LATEST_ONLY <- "Electoman|EM-Analytics"
+
+# Rows of the Wikipedia table that the app uses (see above).
+select_wiki_polls <- function(d) {
+  d <- d[!grepl(WIKI_EXCLUDE, d$firm), , drop = FALSE]
+  weekly <- which(grepl(WIKI_LATEST_ONLY, d$firm))
+  if (length(weekly) < 2) return(d)
+  # The newest one; on a tie, the first listed (which.max takes the first).
+  newest <- weekly[which.max(d$date[weekly])]
+  d[-setdiff(weekly, newest), , drop = FALSE]
+}
 
 wiki_end_date <- function(x, year) {
   months <- c(Jan = 1, Feb = 2, Mar = 3, Apr = 4, May = 5, Jun = 6, Jul = 7, Aug = 8,
@@ -306,7 +319,7 @@ load_polls <- function(days = WINDOW_DAYS, today = Sys.Date()) {
   recent <- function(d) d[d$date >= today - days & d$date <= today, , drop = FALSE]
 
   wiki <- tryCatch(recent(read_wikipedia_polls()), error = function(e) NULL)
-  if (!is.null(wiki)) wiki <- wiki[!grepl(WIKI_EXCLUDE, wiki$firm), , drop = FALSE]
+  if (!is.null(wiki)) wiki <- select_wiki_polls(wiki)
   if (!is.null(wiki) && nrow(wiki) > 0) {
     src <- list(polls = wiki, source = "wikipedia", live = TRUE, retrieved = Sys.time())
   } else {
