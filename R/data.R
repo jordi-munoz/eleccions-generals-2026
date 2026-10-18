@@ -46,6 +46,11 @@ PARTIES <- data.frame(
              "#0B3C7C", "#0E6E63", "#E2620E"),
   stringsAsFactors = FALSE
 )
+# Wikipedia columns added to a party's figure when present. The tables before
+# the Frente Amplio agreement give Sumar with Compromís; the later ones split
+# FA and FV (Front Valencià), so both are added up to keep one comparable
+# series.
+WIKI_ADD <- c(SUMAR = "^(FV|Front Valenci.*)$")
 BORROWED <- c("PODEMOS", "SALF")  # no 2023 result of their own
 INSIDE <- c(COMPROMIS = "SUMAR")  # polled inside another party's figure
 COMPROMIS_PROV <- c("03", "12", "46")  # Alacant, Castelló, València
@@ -222,6 +227,14 @@ read_wikipedia_polls <- function(url = WIKI_URL) {
       if (length(j)) wiki_number(body[[j[1]]]) else rep(NA_real_, nrow(body))
     }, numeric(nrow(body)))
     shares <- matrix(shares, nrow(body), dimnames = list(NULL, PARTIES$code))
+    for (p in names(WIKI_ADD)) {
+      j <- grep(WIKI_ADD[[p]], cols)
+      if (!length(j)) next
+      extra <- wiki_number(body[[j[1]]])
+      both <- cbind(shares[, p], extra)
+      any_value <- rowSums(!is.na(both)) > 0
+      shares[, p] <- ifelse(any_value, rowSums(both, na.rm = TRUE), NA)
+    }
     df <- data.frame(
       date = wiki_end_date(trimws(body[[grep("Fieldwork", cols)[1]]]), year),
       firm = trimws(body[[1]]),

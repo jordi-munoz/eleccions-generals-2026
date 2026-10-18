@@ -11,7 +11,7 @@ Esta aplicación convierte una estimación de voto **nacional** en una proyecci�
 - **Mi propio escenario** sustituye la encuesta por los porcentajes que escribas.
 - Las candidaturas que ninguna empresa publica (Nueva Canarias, UPL, Teruel Existe, Soria ¡Ya! y otras) mantienen su **porcentaje nacional de 2023**. Lo que queda va a un grupo residual de «otros + voto en blanco», que nunca obtiene escaños.
 - **La CUP y Aliança Catalana** no se presentan a estas elecciones y no se modelan. Los votos de la CUP de 2023 forman parte del grupo residual.
-- **Frente Amplio** es el nombre con el que Sumar se presenta en 2026. Las encuestas que todavía lo recogen como Sumar se leen como Frente Amplio, y su referencia de 2023 y su perfil territorial son los de Sumar.
+- **Frente Amplio** es el nombre con el que Sumar se presenta en 2026. Las encuestas que todavía lo recogen como Sumar se leen como Frente Amplio. La Wikipedia recoge las encuestas de antes y de después del acuerdo del Frente Amplio en dos tablas, que se unen; en la segunda, el Front Valencià (FV) se suma al Frente Amplio, igual que antes Compromís se incluía en Sumar. Su referencia de 2023 y su perfil territorial son los de Sumar.
 - **Compromís** fue la candidatura de Sumar en Alicante, Castellón y Valencia en 2023. Las encuestas recogen al Frente Amplio y Compromís juntos, de modo que la cifra conjunta se reparte en proporción a sus votos de 2023. En 2026 la candidatura de esas tres provincias es **Compromís-Front Valencià** (véase más abajo).
 - Una encuesta que no publica el tamaño de la muestra se trata como si tuviera **1.000 entrevistas**.
 

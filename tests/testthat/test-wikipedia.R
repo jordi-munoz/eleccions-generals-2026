@@ -1,17 +1,29 @@
 fixture <- file.path(ROOT, "tests", "testthat", "fixtures", "wiki_polls.html")
+polls <- suppressWarnings(read_wikipedia_polls(fixture))
+row_of <- function(firm) polls[polls$firm == firm, ]
 
-test_that("yearly tables are read, including ones with a note in the heading", {
-  polls <- suppressWarnings(read_wikipedia_polls(fixture))
-  expect_equal(nrow(polls), 2)
-  expect_setequal(polls$firm, c("SocioMétrica/El Español", "Sigma Dos/El Mundo"))
-  s <- polls[polls$firm == "SocioMétrica/El Español", ]
+test_that("the tables before and after the FA agreement are merged", {
+  expect_setequal(polls$firm, c(
+    "GAD3/Vocento", "Hypothetical/No FV",
+    "SocioMétrica/El Español", "Sigma Dos/El Mundo"
+  ))
+  s <- row_of("SocioMétrica/El Español")
   expect_equal(s$date, as.Date("2026-10-11"))
   expect_equal(s$n, 1000)
   expect_equal(c(s$PP, s$SUMAR), c(32.6, 5.8))
-  expect_equal(polls$date[polls$firm == "Sigma Dos/El Mundo"], as.Date("2025-12-29"))
+  expect_equal(row_of("GAD3/Vocento")$date, as.Date("2026-10-17"))
+  expect_equal(row_of("Sigma Dos/El Mundo")$date, as.Date("2025-12-29"))
+})
+
+test_that("FA is read as Sumar, with FV added as Compromís was before", {
+  g <- row_of("GAD3/Vocento")
+  expect_equal(g$SUMAR, 4.9 + 1.3)
+  expect_equal(g$PODEMOS, 2.0)
+  expect_equal(row_of("Hypothetical/No FV")$SUMAR, 5.5) # FV blank: FA alone
+  expect_true(is.na(row_of("SocioMétrica/El Español")$PODEMOS)) # no column
 })
 
 test_that("empty tables, election rows and later sections are skipped", {
-  polls <- suppressWarnings(read_wikipedia_polls(fixture))
   expect_false(any(grepl("election|skipped", polls$firm)))
+  expect_equal(nrow(polls), 4)
 })

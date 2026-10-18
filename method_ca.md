@@ -11,7 +11,7 @@ Aquesta aplicació converteix una estimació de vot **estatal** en una projecci�
 - **El meu escenari** substitueix l'enquesta pels percentatges que escriguis.
 - Les candidatures que cap empresa publica (Nueva Canarias, UPL, Teruel Existe, Soria ¡Ya! i d'altres) mantenen el seu **percentatge estatal de 2023**. El que queda va a un grup residual d'«altres + vot en blanc», que no obté mai escons.
 - **La CUP i Aliança Catalana** no es presenten a aquestes eleccions i no es modelen. Els vots de la CUP de 2023 formen part del grup residual.
-- **Front Ampli** (Frente Amplio) és el nom amb què Sumar es presenta el 2026. Les enquestes que encara el recullen com a Sumar es llegeixen com a Front Ampli, i la seva referència de 2023 i el seu perfil territorial són els de Sumar.
+- **Front Ampli** (Frente Amplio) és el nom amb què Sumar es presenta el 2026. Les enquestes que encara el recullen com a Sumar es llegeixen com a Front Ampli. La Viquipèdia recull les enquestes d'abans i de després de l'acord del Front Ampli en dues taules, que s'ajunten; a la segona, el Front Valencià (FV) se suma al Front Ampli, tal com abans Compromís s'incloïa a Sumar. La seva referència de 2023 i el seu perfil territorial són els de Sumar.
 - **Compromís** va ser la candidatura de Sumar a Alacant, Castelló i València el 2023. Les enquestes recullen el Front Ampli i Compromís junts, de manera que la xifra conjunta es reparteix en proporció als seus vots de 2023. El 2026 la candidatura d'aquestes tres províncies és **Compromís-Front Valencià** (vegeu més avall).
 - Una enquesta que no publica la mida de la mostra es tracta com si tingués **1.000 entrevistes**.
 

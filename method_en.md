@@ -11,7 +11,7 @@ This app turns a **national** vote estimate into a seat projection for the Congr
 - **Your own scenario** replaces the poll with the percentages you type.
 - Lists that no pollster reports (Nueva Canarias, UPL, Teruel Existe, Soria ¡Ya!, and others) keep their **2023 national share**. Whatever is left goes to a residual "others + blank votes" group, which never wins seats.
 - **CUP and Aliança Catalana** do not run in this election and are not modelled. CUP's 2023 votes are part of the residual group.
-- **Frente Amplio** is the name under which Sumar runs in 2026. Polls that still report it as Sumar are read as Frente Amplio, and its 2023 reference and territorial profile are those of Sumar.
+- **Frente Amplio** is the name under which Sumar runs in 2026. Polls that still report it as Sumar are read as Frente Amplio. Wikipedia lists the polls from before and after the Frente Amplio agreement in two tables, which are merged; in the later one, Front Valencià (FV) is added to Frente Amplio, as Compromís was included in Sumar before. Its 2023 reference and territorial profile are those of Sumar.
 - **Compromís** ran as the Sumar list in Alicante, Castellón and Valencia in 2023. Polls are recorded with Frente Amplio and Compromís together, so the joint figure is split in proportion to their 2023 votes. In 2026 the list in those three provinces is **Compromís-Front Valencià** (see below).
 - A poll that does not publish its sample size is treated as having **1,000 interviews**.
 
