@@ -45,6 +45,29 @@ trend_fit <- function(dates, pollster, shares) {
   }, c(level = 0, slope = 0))
 }
 
+# National estimates from the polls of load_polls() (percent, per polled
+# party). The average takes the latest poll of each pollster; a party no poll
+# publishes has no average and keeps its 2023 share. The trend uses every
+# poll and, where it has no value, takes the average. `poll_n` is the sample
+# size of each poll, DEFAULT_N where not published.
+poll_estimates <- function(pl, base) {
+  has_polls <- nrow(pl$polls) > 0
+  avg <- if (has_polls) {
+    colMeans(pl$shares[pl$in_avg, POLLED, drop = FALSE], na.rm = TRUE)
+  } else {
+    100 * base$nat23[POLLED]
+  }
+  avg[is.nan(avg)] <- NA
+  trend <- if (has_polls) {
+    shares <- pl$shares[, POLLED, drop = FALSE]
+    trend_estimate(pl$polls$date, pl$pollster, shares, avg)
+  } else {
+    avg
+  }
+  list(has_polls = has_polls, avg = avg, trend = trend,
+       poll_n = ifelse(is.na(pl$polls$n), DEFAULT_N, pl$polls$n))
+}
+
 # National targets (fractions over valid votes) for every column of the
 # baseline. `pct` is a named vector in percent for the polled parties, NA where
 # unknown. NAs are filled from `fallback` (the poll average) when available;

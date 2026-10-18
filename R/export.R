@@ -1,9 +1,12 @@
 # Machine-readable copy of the default projection, for other interfaces.
-# app.R builds it once when the app starts (that is when the polls are read),
-# writes it to export_dir() and serves it at /export/projection.json and
-# /export/projection.csv. It always uses the default uncertainty settings.
+# Built by default_projection() in two places, with the same result for the
+# same polls: app.R at start-up (serves it at /export/projection.json and
+# /export/projection.csv), and scripts/export_data.R, which the daily GitHub
+# Action runs to publish it on GitHub Pages. It always uses the default
+# uncertainty settings.
 
 EXPORT_FILES <- c(json = "projection.json", csv = "projection.csv")
+APP_URL      <- "https://01a134f6-f370-5588-3fa4-78361b68e2a7.share.connect.posit.cloud/"
 EXPORT_LANG  <- "es"  # language of the party names in the rows
 
 # What each field of a row means; copied into the JSON so that it documents
@@ -113,13 +116,59 @@ build_export <- function(sim, base, estimate, meta) {
   )
 }
 
+# The default projection for the polls in `pl` (see load_polls): trend
+# estimate (or the 2023 result with no polls) and default uncertainty. Returns
+# the choice it stands for (`poll`), the national estimate, the simulation and
+# the export files as bytes.
+default_projection <- function(base, pl, est = poll_estimates(pl, base),
+                               now = Sys.time()) {
+  poll <- if (est$has_polls) "trend" else "avg"
+  estimate <- if (est$has_polls) est$trend else est$avg
+  n <- if (est$has_polls) sum(est$poll_n[pl$in_avg]) else NA_real_
+  target <- build_target(estimate, base)$target
+  sim <- simulate_election(base, target, n_poll = n)
+  stamp <- function(t) format(t, "%Y-%m-%dT%H:%M:%S%z", tz = TIME_ZONE)
+  dates <- function(f) if (est$has_polls) format(f(pl$polls$date)) else NA
+  meta <- list(
+    generated_at = stamp(now),
+    election_date = format(ELECTION_DATE),
+    polls = list(
+      source = pl$source,
+      source_url = if (pl$source == "wikipedia") WIKI_URL else POLLS_URL,
+      downloaded_live = pl$live,
+      retrieved_at = stamp(pl$retrieved),
+      estimate = if (est$has_polls) "trend" else "2023 result (no polls)",
+      window_days = WINDOW_DAYS,
+      n_polls = nrow(pl$polls),
+      n_pollsters = sum(pl$in_avg),
+      first_fieldwork_end = dates(min),
+      last_fieldwork_end = dates(max)
+    ),
+    settings = list(
+      simulations = DEFAULT_SIMS,
+      national_error_points_at_30pct = DEFAULT_NAT_ERR,
+      provincial_deviation_pct = 100 * DEFAULT_SIGMA,
+      seed = SIM_SEED,
+      interval = "90%: 5th to 95th percentile of simulated seats",
+      threshold_pct = 100 * THRESHOLD,
+      total_seats = sum(base$seats),
+      majority = MAJORITY
+    )
+  )
+  list(poll = poll, estimate = estimate, sim = sim,
+       bytes = serialise_export(build_export(sim, base, estimate, meta)))
+}
+
 # The two files as bytes: JSON (nested) and CSV (the flat rows).
 serialise_export <- function(ex) {
-  json <- jsonlite::toJSON(ex[c("meta", "parties", "national", "provinces")],
-                           auto_unbox = TRUE, pretty = TRUE, digits = NA, na = "null")
+  json <- jsonlite::toJSON(
+    ex[c("meta", "parties", "national", "provinces")],
+    auto_unbox = TRUE, pretty = TRUE, digits = NA, na = "null"
+  )
   tf <- tempfile(fileext = ".csv")
   on.exit(unlink(tf))
-  utils::write.csv(ex$rows, tf, row.names = FALSE, na = "", fileEncoding = "UTF-8")
+  utils::write.csv(ex$rows, tf, row.names = FALSE, na = "",
+                   fileEncoding = "UTF-8")
   list(json = charToRaw(enc2utf8(as.character(json))),
        csv = readBin(tf, "raw", file.size(tf)))
 }

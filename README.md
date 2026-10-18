@@ -17,10 +17,12 @@ The full method, with its assumptions and limits, is in the app's Method tab ([E
 
 ## Data files
 
-The default projection is published as data for use in other interfaces. The files are rebuilt every time the app starts, and can be fetched from any website (CORS enabled):
+The default projection is published as data for use in other interfaces. A GitHub Action ([publish-data.yml](.github/workflows/publish-data.yml)) rebuilds it every morning with the latest polls and publishes it on GitHub Pages. These are the permanent addresses:
 
-- JSON: https://01a134f6-f370-5588-3fa4-78361b68e2a7.share.connect.posit.cloud/export/projection.json
-- CSV: https://01a134f6-f370-5588-3fa4-78361b68e2a7.share.connect.posit.cloud/export/projection.csv
+- JSON: https://jordi-munoz.github.io/eleccions-generals-2026/projection.json
+- CSV: https://jordi-munoz.github.io/eleccions-generals-2026/projection.csv
+
+The app also serves the same files, as of its last start, at `/export/projection.json` and `/export/projection.csv` on its own address. To rebuild the files locally: `Rscript scripts/export_data.R [folder]`.
 
 Both cover national and provincial results: projected vote share, seats, the 90% interval, P(seat), and the 2023 vote and seats. The JSON also has the probability of each successive seat in every province, the poll source and settings, and a description of every field (`meta.fields`).
 
@@ -52,6 +54,7 @@ testthat::test_dir("tests/testthat")
 | `data/aa_prior.csv` | provincial distribution of Adelante Andalucía (Andalusian regional election) |
 | `PROV_02_*/` | results by province, Ministerio del Interior (2023 is used by the app; 2019 for calibration) |
 | `scripts/deploy.R` | publishes to Posit Connect Cloud |
+| `scripts/export_data.R` | writes the data files without the app (run daily by the GitHub Action) |
 | `tests/` | testthat tests |
 
 ## Sources

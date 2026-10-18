@@ -11,7 +11,6 @@ base <- build_baseline()
 geo  <- load_map()
 pl   <- load_polls()
 
-POLLED <- setdiff(PARTIES$code, names(INSIDE))
 info <- base$info
 # Party names (see party_label; `cpro` is the province, if any).
 lab <- function(code, lang, cpro = NULL) party_label(info, code, lang, cpro)
@@ -26,55 +25,23 @@ poll_lab <- function(code, lang) {
 }
 col <- function(code) info[code, "colour"]
 
-# The average takes the latest poll of each pollster. A party no poll
-# publishes has no average: it keeps its 2023 share.
-has_polls <- nrow(pl$polls) > 0
-avg <- if (has_polls) colMeans(pl$shares[pl$in_avg, POLLED, drop = FALSE], na.rm = TRUE) else
-  100 * base$nat23[POLLED]
-avg[is.nan(avg)] <- NA
-poll_n <- ifelse(is.na(pl$polls$n), DEFAULT_N, pl$polls$n)
-# The trend estimate uses every poll; where it has no value it takes the average.
-trend <- if (has_polls) {
-  trend_estimate(pl$polls$date, pl$pollster, pl$shares[, POLLED, drop = FALSE], avg)
-} else avg
+# Poll average, trend estimate and sample sizes (see poll_estimates).
+est <- poll_estimates(pl, base)
+has_polls <- est$has_polls
+avg <- est$avg
+trend <- est$trend
+poll_n <- est$poll_n
 start_value <- round(ifelse(is.na(trend), 100 * base$nat23[POLLED], trend), 1)
 names(start_value) <- POLLED
 rest23 <- 100 * (1 - sum(base$nat23[PARTIES$code]))
 
 # Default projection: what the app shows on opening. It is computed once here
-# and also published as data files for other interfaces (R/export.R), so the
-# files change exactly when the polls do, at the start of the R process.
-DEFAULT_POLL <- if (has_polls) "trend" else "avg"
-default_est <- if (has_polls) trend else avg
-default_n <- if (has_polls) sum(poll_n[pl$in_avg]) else NA_real_
-default_sim <- simulate_election(base, build_target(default_est, base)$target, n_poll = default_n)
-stamp <- function(t) format(t, "%Y-%m-%dT%H:%M:%S%z", tz = TIME_ZONE)
-export_bytes <- serialise_export(build_export(default_sim, base, default_est, list(
-  generated_at = stamp(Sys.time()),
-  election_date = format(ELECTION_DATE),
-  polls = list(
-    source = pl$source,
-    source_url = if (pl$source == "wikipedia") WIKI_URL else POLLS_URL,
-    downloaded_live = pl$live,
-    retrieved_at = stamp(pl$retrieved),
-    estimate = if (has_polls) "trend" else "2023 result (no polls in the window)",
-    window_days = WINDOW_DAYS,
-    n_polls = nrow(pl$polls),
-    n_pollsters = sum(pl$in_avg),
-    first_fieldwork_end = if (has_polls) format(min(pl$polls$date)) else NA,
-    last_fieldwork_end = if (has_polls) format(max(pl$polls$date)) else NA
-  ),
-  settings = list(
-    simulations = DEFAULT_SIMS,
-    national_error_points_at_30pct = DEFAULT_NAT_ERR,
-    provincial_deviation_pct = 100 * DEFAULT_SIGMA,
-    seed = SIM_SEED,
-    interval = "90%: 5th to 95th percentile of simulated seats",
-    threshold_pct = 100 * THRESHOLD,
-    total_seats = sum(base$seats),
-    majority = MAJORITY
-  )
-)))
+# and also published as data files (R/export.R), so the files change exactly
+# when the polls do, at the start of the R process.
+default <- default_projection(base, pl, est)
+DEFAULT_POLL <- default$poll
+default_sim <- default$sim
+export_bytes <- default$bytes
 write_export(export_bytes, export_dir())
 
 SOURCE_LINK <- as.character(

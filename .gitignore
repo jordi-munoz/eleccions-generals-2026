@@ -2,8 +2,9 @@
 CLAUDE.md
 .claude/
 
-# Written by the app at start-up
+# Written by the app at start-up, and by scripts/export_data.R
 export/
+_site/
 
 # Local copy of POLITICO's poll data (fallback only; not redistributed)
 data/polls_cache.json

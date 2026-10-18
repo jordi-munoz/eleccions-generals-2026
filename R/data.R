@@ -53,6 +53,7 @@ PARTIES <- data.frame(
 WIKI_ADD <- c(SUMAR = "^(FV|Front Valenci.*)$")
 BORROWED <- c("PODEMOS", "SALF")  # no 2023 result of their own
 INSIDE <- c(COMPROMIS = "SUMAR")  # polled inside another party's figure
+POLLED <- setdiff(PARTIES$code, names(INSIDE))  # parties with a poll figure
 COMPROMIS_PROV <- c("03", "12", "46")  # Alacant, Castelló, València
 
 CANARIAS_PROV <- c("35", "38")  # Las Palmas, Santa Cruz de Tenerife
