@@ -467,8 +467,9 @@ server <- function(input, output, session) {
   output$polls_plot <- renderPlotly({
     validate(need(has_polls, tr("polls_none", lang)))
     dates <- pl$polls$date
-    fit <- trend_fit(dates, pl$pollster, pl$shares[, POLLED, drop = FALSE])
     span <- range(dates)
+    grid <- seq(span[1], span[2], by = 1)
+    curves <- trend_curve(dates, pl$pollster, pl$shares[, POLLED, drop = FALSE], grid)
     fig <- plot_ly()
     for (p in POLLED[order(-ifelse(is.na(trend), 0, trend))]) {
       y <- pl$shares[, p]
@@ -476,7 +477,7 @@ server <- function(input, output, session) {
       name <- poll_lab(p, lang)
       # Parties around 1% or less crowd the bottom of the chart: off until asked for.
       show <- if (isTRUE(trend[[p]] >= 1)) TRUE else "legendonly"
-      has_line <- !is.na(fit["level", p])
+      has_line <- any(!is.na(curves[, p]))
       fig <- add_markers(
         fig, x = dates[!is.na(y)], y = y[!is.na(y)], name = name, legendgroup = p,
         showlegend = !has_line, visible = show, hoverinfo = "text",
@@ -486,11 +487,11 @@ server <- function(input, output, session) {
                       line = list(color = "#ffffff", width = 1))
       )
       if (has_line) {
-        line_y <- fit["level", p] + fit["slope", p] * as.numeric(span - span[2])
+        line_y <- curves[, p]
         fig <- add_lines(
-          fig, x = span, y = line_y, name = name, legendgroup = p, visible = show,
-          hoverinfo = "text",
-          text = tr("plot_trend", lang, name, fmt_date(span), fmt_num(line_y, lang)),
+          fig, x = grid, y = line_y, name = name, legendgroup = p, visible = show,
+          hoverinfo = "text", connectgaps = FALSE,
+          text = tr("plot_trend", lang, name, fmt_date(grid), fmt_num(line_y, lang)),
           line = list(color = col(p), width = 2)
         )
       }

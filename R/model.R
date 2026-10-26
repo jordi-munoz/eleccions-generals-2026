@@ -48,6 +48,33 @@ trend_fit <- function(dates, pollster, shares) {
   }, c(level = 0, slope = 0))
 }
 
+# Trend curves for the polls chart: the same fit as trend_fit(), repeated
+# centred on each date of `grid`, with weights halving every TREND_HALF_LIFE
+# days on both sides of that date. On the latest poll date only earlier polls
+# exist, so the curve ends exactly at the trend estimate. Parties without a
+# trend line (see trend_fit) get NA. Returns a matrix: grid dates x parties.
+trend_curve <- function(dates, pollster, shares,
+                        grid = seq(min(dates), max(dates), by = 1)) {
+  t <- as.numeric(dates - max(dates))
+  g <- as.numeric(grid - max(dates))
+  has_line <- !is.na(trend_fit(dates, pollster, shares)["level", ])
+  out <- matrix(NA_real_, length(grid), ncol(shares),
+                dimnames = list(as.character(grid), colnames(shares)))
+  for (p in colnames(shares)[has_line]) {
+    ok <- !is.na(shares[, p])
+    d <- data.frame(y = shares[ok, p], t = t[ok], f = factor(pollster[ok]))
+    if (nlevels(d$f) > 1) contrasts(d$f) <- contr.sum(nlevels(d$f))
+    form <- if (nlevels(d$f) > 1) y ~ dt + f else y ~ dt
+    out[, p] <- vapply(g, function(at) {
+      d$dt <- d$t - at
+      d$w <- 0.5^(abs(d$dt) / TREND_HALF_LIFE)
+      b <- coef(lm(form, data = d, weights = w))
+      if (anyNA(b)) NA_real_ else b[[1]]
+    }, numeric(1))
+  }
+  out
+}
+
 # National estimates from the polls of load_polls() (percent, per polled
 # party). The average takes the latest poll of each pollster; a party no poll
 # publishes has no average and keeps its 2023 share. The trend uses every

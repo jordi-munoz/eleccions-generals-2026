@@ -50,3 +50,30 @@ test_that("the trend falls back to the given value when it cannot be trusted", {
   rank <- cbind(RANK = 10 + seq_len(n))
   expect_true(is.na(trend_fit(dates, own, rank)[["level", "RANK"]]))
 })
+
+test_that("the chart curve ends exactly at the trend estimate", {
+  shares <- cbind(P = 30 + 0.05 * days + house + sin(days / 9))
+  fit <- trend_fit(dates, pollster, shares)
+  curve <- trend_curve(dates, pollster, shares)
+  expect_equal(nrow(curve), as.numeric(diff(range(dates))) + 1)
+  expect_equal(curve[nrow(curve), "P"], fit[["level", "P"]])
+})
+
+test_that("the chart curve recovers a straight line and follows a bend", {
+  straight <- cbind(P = 30 + 0.05 * days + house)
+  curve <- trend_curve(dates, pollster, straight)
+  grid <- seq(min(dates), max(dates), by = 1)
+  expect_equal(unname(curve[, "P"]), 30 + 0.05 * as.numeric(grid - max(dates)))
+  # A party that rose and then fell: the curve peaks in the middle.
+  bent <- cbind(P = 30 - 0.004 * (days + 28)^2 + house)
+  bc <- trend_curve(dates, pollster, bent)[, "P"]
+  peak <- as.numeric(as.Date(names(which.max(bc))) - max(dates))
+  expect_true(peak > -40 && peak < -15)
+})
+
+test_that("parties without a trend line get no curve", {
+  shares <- cbind(P = 30 + house, Q = c(rep(NA, length(days) - 5), rep(2, 5)))
+  curve <- trend_curve(dates, pollster, shares)
+  expect_true(all(!is.na(curve[, "P"])))
+  expect_true(all(is.na(curve[, "Q"])))
+})
