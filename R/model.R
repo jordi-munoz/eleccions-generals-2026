@@ -11,7 +11,7 @@ DEFAULT_NAT_ERR <- 2     # points, for a party at 30%
 DEFAULT_SIGMA   <- 0.12  # provincial deviation, log scale
 SIM_SEED        <- 2026
 
-TREND_HALF_LIFE <- 30  # days after which a poll weighs half in the trend
+TREND_HALF_LIFE <- 14  # days after which a poll weighs half in the trend
 TREND_MIN_POLLS <- 8   # fewer polls than this for a party: no trend
 
 # Trend estimate of each party's national share (percent). A straight line
@@ -40,7 +40,10 @@ trend_fit <- function(dates, pollster, shares) {
     if (nlevels(d$f) > 1) contrasts(d$f) <- contr.sum(nlevels(d$f))
     fit <- lm(if (nlevels(d$f) > 1) y ~ t + f else y ~ t, data = d, weights = w)
     b <- coef(fit)
-    if (anyNA(b) || b[[1]] < min(d$y) || b[[1]] > max(d$y)) none else
+    # A tolerance keeps a line that ends exactly on the newest poll from being
+    # rejected over rounding.
+    tol <- 1e-6
+    if (anyNA(b) || b[[1]] < min(d$y) - tol || b[[1]] > max(d$y) + tol) none else
       c(level = b[[1]], slope = b[["t"]])
   }, c(level = 0, slope = 0))
 }

@@ -27,6 +27,17 @@ test_that("other pollsters are kept and CIS re-estimates dropped", {
   expect_false(any(grepl("^CIS [(]", d$firm)))
 })
 
+test_that("polls commissioned by a party are dropped", {
+  firms <- c("PSOE", "Sumar", "Sondea/PP", "GAD3/Vocento", "PSOE Research", "CIS",
+             "Sigma Dos/El Mundo")
+  expect_equal(party_commissioned(firms), c(TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE))
+  d <- select_wiki_polls(rbind(wiki_rows, data.frame(
+    date = as.Date("2026-10-25"), firm = "PSOE", PP = 29.0
+  )))
+  expect_false("PSOE" %in% d$firm)
+  expect_equal(nrow(d), 3)
+})
+
 test_that("a tie on the newest date keeps the first row listed", {
   tie <- wiki_rows
   tie$date[6] <- as.Date("2026-10-17")

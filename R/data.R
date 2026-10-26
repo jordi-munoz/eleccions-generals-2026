@@ -164,10 +164,21 @@ build_baseline <- function(path = RESULTS_2023) {
 # one pollster like the others (Jordi, 2026-10-18).
 WIKI_EXCLUDE <- "^CIS\\s*\\("
 WIKI_LATEST_ONLY <- "Electoman|EM-Analytics"
+# Polls commissioned by a party appear with the party's name as pollster or
+# commissioner (e.g. "PSOE"); they are left out.
+PARTY_NAMES_WIKI <- c(
+  "PP", "PSOE", "Vox", "VOX", "Sumar", "Frente Amplio", "FA", "Podemos", "ERC",
+  "Junts", "PNV", "EAJ-PNV", "EH Bildu", "BNG", "CC", "UPN", "SALF", "Compromís",
+  "Adelante Andalucía", "Más Madrid", "IU"
+)
+party_commissioned <- function(firm) {
+  vapply(strsplit(firm, "/", fixed = TRUE), function(p) any(trimws(p) %in% PARTY_NAMES_WIKI),
+         logical(1))
+}
 
 # Rows of the Wikipedia table that the app uses (see above).
 select_wiki_polls <- function(d) {
-  d <- d[!grepl(WIKI_EXCLUDE, d$firm), , drop = FALSE]
+  d <- d[!grepl(WIKI_EXCLUDE, d$firm) & !party_commissioned(d$firm), , drop = FALSE]
   weekly <- which(grepl(WIKI_LATEST_ONLY, d$firm))
   if (length(weekly) < 2) return(d)
   # The newest one; on a tie, the first listed (which.max takes the first).
