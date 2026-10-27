@@ -168,7 +168,7 @@ dhondt <- function(V, n) {
 #   sigma_prov sd of the provincial deviation from proportional swing (log scale)
 simulate_election <- function(base, target, n_poll = NA, sims = DEFAULT_SIMS,
                               nat_err = DEFAULT_NAT_ERR, sigma_prov = DEFAULT_SIGMA,
-                              seed = SIM_SEED) {
+                              seed = SIM_SEED, lists_2026 = TRUE) {
   set.seed(seed)
   S <- sims + 1L  # row 1 carries no noise: the central projection
   I <- nrow(base$seed)
@@ -205,6 +205,14 @@ simulate_election <- function(base, target, n_poll = NA, sims = DEFAULT_SIMS,
   A <- give(A, PODEMOS_ABSENT, "SUMAR", 1 - PODEMOS_TO_ERC)
   for (to in names(PODEMOS_JOINED)) A <- give(A, PODEMOS_JOINED[[to]], to, 1)
   A[, match(c(PODEMOS_ABSENT, unlist(PODEMOS_JOINED)), base$cpro), pod] <- 0
+
+  # Navarra: UPN runs on a joint list with PP, which takes its votes.
+  # (lists_2026 = FALSE keeps the 2023 lists, for the check against 2023.)
+  if (lists_2026) {
+    i <- match(NAVARRA_PROV, base$cpro)
+    A[, i, match("PP", cols)] <- A[, i, match("PP", cols)] + A[, i, match("UPN", cols)]
+    A[, i, match("UPN", cols)] <- 0
+  }
 
   seats <- array(0L, c(S, I, P))
   share <- array(0, c(S, I, P))

@@ -35,6 +35,8 @@ Three parties do not use their own 2023 result as territorial profile:
 
 The joint lists keep all the votes of their members: they neither attract new voters nor lose any by running together. Because the poll figure for Podemos is spread over the whole country before these steps, its national share ends up well below the poll, and those of Frente Amplio, Compromís-Front Valencià and ERC above. If pollsters already count Podemos's Catalan voters under other parties, the Catalan step moves them twice.
 
+**UPN and PP in Navarra.** UPN and PP run as a single list in Navarra, the only province where UPN stands. The model projects both separately and then adds UPN's votes to PP's in Navarra, so UPN wins no seats of its own. In Navarra the joint list is shown as **UPN-PP**; in the national table it is counted under PP. Its 2023 reference is still PP's result alone, so its change against 2023 includes UPN's votes.
+
 ### 3. Seats: D'Hondt in each province
 
 Seats are allocated with the **D'Hondt** rule separately in each constituency, among lists with at least **3% of the valid vote** (blank votes included) in that constituency. The number of seats per province is that of 2023 with the two changes for 2026: **Madrid 38 (+1)** and **Cádiz 8 (−1)**. Applied to the actual 2023 vote and the 2023 seat distribution, the code reproduces the official allocation exactly.

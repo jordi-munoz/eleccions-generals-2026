@@ -35,6 +35,8 @@ Tres partits no fan servir el seu propi resultat de 2023 com a perfil territoria
 
 Les candidatures conjuntes conserven tots els vots dels seus membres: ni atrauen votants nous ni en perden pel fet d'anar junts. Com que la xifra de Podemos a les enquestes es reparteix per tot l'Estat abans d'aquests passos, el seu percentatge estatal queda força per sota de l'enquesta, i els del Front Ampli, Compromís-Front Valencià i ERC per sobre. Si les empreses ja compten els votants catalans de Podemos en altres partits, el pas de Catalunya els mou dues vegades.
 
+**UPN i PP a Navarra.** UPN i el PP es presenten en una sola llista a Navarra, l'única província on es presenta UPN. El model projecta tots dos per separat i després suma els vots d'UPN als del PP a Navarra, de manera que UPN no obté escons propis. A Navarra la llista conjunta es mostra com a **UPN-PP**; a la taula estatal es compta dins del PP. La seva referència de 2023 continua sent només el resultat del PP, de manera que la seva variació respecte a 2023 inclou els vots d'UPN.
+
 ### 3. Escons: D'Hondt a cada província
 
 Els escons s'assignen amb la regla **D'Hondt** per separat a cada circumscripció, entre les candidatures amb almenys el **3% del vot vàlid** (vots en blanc inclosos) en aquella circumscripció. El nombre d'escons per província és el de 2023 amb els dos canvis de 2026: **Madrid 38 (+1)** i **Cadis 8 (−1)**. Aplicat al vot real de 2023 i al repartiment d'escons de 2023, el codi reprodueix exactament l'assignació oficial.

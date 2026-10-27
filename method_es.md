@@ -35,6 +35,8 @@ Tres partidos no usan su propio resultado de 2023 como perfil territorial:
 
 Las candidaturas conjuntas conservan todos los votos de sus miembros: ni atraen votantes nuevos ni pierden ninguno por ir juntos. Como la cifra de Podemos en las encuestas se reparte por toda España antes de estos pasos, su porcentaje nacional queda bastante por debajo de la encuesta, y los del Frente Amplio, Compromís-Front Valencià y ERC por encima. Si las empresas ya cuentan a los votantes catalanes de Podemos en otros partidos, el paso de Cataluña los mueve dos veces.
 
+**UPN y PP en Navarra.** UPN y el PP se presentan en una sola lista en Navarra, la única provincia donde se presenta UPN. El modelo proyecta ambos por separado y después suma los votos de UPN a los del PP en Navarra, de modo que UPN no obtiene escaños propios. En Navarra la lista conjunta se muestra como **UPN-PP**; en la tabla nacional se cuenta dentro del PP. Su referencia de 2023 sigue siendo solo el resultado del PP, así que su variación respecto a 2023 incluye los votos de UPN.
+
 ### 3. Escaños: D'Hondt en cada provincia
 
 Los escaños se asignan con la regla **D'Hondt** por separado en cada circunscripción, entre las candidaturas con al menos el **3% del voto válido** (votos en blanco incluidos) en esa circunscripción. El número de escaños por provincia es el de 2023 con los dos cambios de 2026: **Madrid 38 (+1)** y **Cádiz 8 (−1)**. Aplicado al voto real de 2023 y al reparto de escaños de 2023, el código reproduce exactamente la asignación oficial.

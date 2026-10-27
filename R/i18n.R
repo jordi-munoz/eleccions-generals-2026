@@ -14,14 +14,17 @@ PARTY_NAMES <- list(
                 es = "Compromís-Front Valencià")
 )
 SUMAR_CANARIAS <- "Unidad del Pueblo Canario"
+PP_NAVARRA <- "UPN-PP"  # joint list of UPN and PP in Navarra
 
 # Name of each party code in `lang`; `info` is base$info and `cpro` the
-# province, if any (Frente Amplio has another name in the Canary Islands).
+# province, if any (Frente Amplio has another name in the Canary Islands, and
+# PP in Navarra).
 party_label <- function(info, code, lang, cpro = NULL) {
   out <- info[code, "label"]
   translated <- code %in% names(PARTY_NAMES)
   out[translated] <- vapply(code[translated], function(p) PARTY_NAMES[[p]][[lang]], "")
   if (!is.null(cpro) && cpro %in% CANARIAS_PROV) out[code == "SUMAR"] <- SUMAR_CANARIAS
+  if (!is.null(cpro) && cpro %in% NAVARRA_PROV) out[code == "PP"] <- PP_NAVARRA
   out
 }
 

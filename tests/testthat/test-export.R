@@ -52,6 +52,8 @@ test_that("joint lists carry their own names", {
   name_of <- function(code, cpro) prov$party_name[prov$party_code == code & prov$cpro == cpro]
   expect_equal(name_of("SUMAR", "35"), "Unidad del Pueblo Canario")
   expect_equal(name_of("SUMAR", "28"), "Frente Amplio")
+  expect_equal(name_of("PP", "31"), "UPN-PP")
+  expect_equal(name_of("PP", "28"), "PP")
   expect_equal(name_of("COMPROMIS", "46"), "Compromís-Front Valencià")
   expect_equal(nat$party_name[nat$party_code == "SUMAR"], "Frente Amplio")
 })

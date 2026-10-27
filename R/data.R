@@ -67,6 +67,8 @@ CANARIAS_PROV <- c("35", "38")  # Las Palmas, Santa Cruz de Tenerife
 PODEMOS_ABSENT <- c("08", "17", "25", "43")  # Barcelona, Girona, Lleida, Tarragona
 PODEMOS_TO_ERC <- 0.5
 PODEMOS_JOINED <- list(COMPROMIS = COMPROMIS_PROV, SUMAR = CANARIAS_PROV)
+# In Navarra UPN and PP run as one list: UPN's projected votes go to PP there.
+NAVARRA_PROV <- "31"
 NOT_RUNNING <- c("CUP-PR")        # 2023 lists that do not run in 2026
 OTHERS <- "OTHERS"
 
