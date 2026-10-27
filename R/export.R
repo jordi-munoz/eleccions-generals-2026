@@ -159,6 +159,61 @@ default_projection <- function(base, pl, est = poll_estimates(pl, base),
        bytes = serialise_export(build_export(sim, base, estimate, meta)))
 }
 
+# Data behind the chart in the Polls tab, computed as in app.R: one row per
+# poll figure (series "poll", the dots) and one per party and day (series
+# "trend", the curves of trend_curve()). Party names as in the chart legend,
+# where Frente Amplio's poll figure includes Compromís.
+polls_chart_rows <- function(pl, base, est = poll_estimates(pl, base),
+                             lang = EXPORT_LANG) {
+  dates <- pl$polls$date
+  grid <- seq(min(dates), max(dates), by = 1)
+  shares <- pl$shares[, POLLED, drop = FALSE]
+  curves <- trend_curve(dates, pl$pollster, shares, grid)
+  rows <- list()
+  for (p in POLLED) {
+    y <- shares[, p]
+    if (all(is.na(y))) next
+    ok <- !is.na(y)
+    rows[[length(rows) + 1]] <- data.frame(
+      series = "poll", date = format(dates[ok]), party_code = p,
+      pct = y[ok], pollster = pl$polls$firm[ok],
+      sample_size = pl$polls$n[ok], in_average = pl$in_avg[ok]
+    )
+    if (any(!is.na(curves[, p]))) {
+      rows[[length(rows) + 1]] <- data.frame(
+        series = "trend", date = format(grid), party_code = p,
+        pct = round(curves[, p], 3), pollster = NA, sample_size = NA,
+        in_average = NA
+      )
+    }
+  }
+  d <- do.call(rbind, rows)
+  inside <- vapply(d$party_code, function(p) {
+    hosted <- base$info[names(INSIDE)[INSIDE == p], "label"]
+    paste(c("", hosted), collapse = " + ")
+  }, "")
+  d$party_name <- paste0(party_label(base$info, d$party_code, lang), inside)
+  d$colour <- base$info[d$party_code, "colour"]
+  # The chart hides parties around 1% or less until clicked in the legend.
+  shown <- POLLED[!is.na(est$trend) & est$trend >= 1]
+  d$shown_by_default <- d$party_code %in% shown
+  d <- d[order(d$party_code, d$series, d$date), c(
+    "series", "date", "party_code", "party_name", "colour", "pct",
+    "pollster", "sample_size", "in_average", "shown_by_default"
+  )]
+  rownames(d) <- NULL
+  d
+}
+
+# Writes a data frame as UTF-8 CSV. Returns FALSE instead of failing (a file
+# locked by OneDrive must not stop the caller).
+write_csv_utf8 <- function(d, path) {
+  res <- try(suppressWarnings(utils::write.csv(
+    d, path, row.names = FALSE, na = "", fileEncoding = "UTF-8"
+  )), silent = TRUE)
+  !inherits(res, "try-error")
+}
+
 # The two files as bytes: JSON (nested) and CSV (the flat rows).
 serialise_export <- function(ex) {
   json <- jsonlite::toJSON(

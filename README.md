@@ -21,6 +21,7 @@ The default projection is published as data for use in other interfaces. A GitHu
 
 - JSON: https://jordi-munoz.github.io/eleccions-generals-2026/projection.json
 - CSV: https://jordi-munoz.github.io/eleccions-generals-2026/projection.csv
+- Poll chart (the dots and trend curves of the app's Polls tab): https://jordi-munoz.github.io/eleccions-generals-2026/polls_chart.csv
 
 The app also serves the same files, as of its last start, at `/export/projection.json` and `/export/projection.csv` on its own address. To rebuild the files locally: `Rscript scripts/export_data.R [folder]`.
 
@@ -55,6 +56,7 @@ testthat::test_dir("tests/testthat")
 | `PROV_02_*/` | results by province, Ministerio del Interior (2023 is used by the app; 2019 for calibration) |
 | `scripts/deploy.R` | publishes to Posit Connect Cloud |
 | `scripts/export_data.R` | writes the data files without the app (run daily by the GitHub Action) |
+| `scripts/export_polls_chart.R` | writes the poll chart data to `export/polls_chart.csv` locally |
 | `tests/` | testthat tests |
 
 ## Sources

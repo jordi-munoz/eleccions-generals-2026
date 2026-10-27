@@ -23,6 +23,10 @@ if (nrow(pl$polls) == 0) stop("No polls in the last ", WINDOW_DAYS, " days")
 proj <- default_projection(base, pl)
 dir.create(out, showWarnings = FALSE, recursive = TRUE)
 if (!write_export(proj$bytes, out)) stop("Could not write the files to ", out)
+chart <- polls_chart_rows(pl, base)
+if (!write_csv_utf8(chart, file.path(out, "polls_chart.csv"))) {
+  stop("Could not write polls_chart.csv to ", out)
+}
 
 # A small landing page listing the files.
 meta <- jsonlite::fromJSON(rawToChar(proj$bytes$json))$meta
@@ -46,6 +50,9 @@ morning from the latest polls.</p>
       (<code>meta.fields</code>)</li>
   <li><a href="projection.csv">projection.csv</a>: one row per party, nationally
       and in each province</li>
+  <li><a href="polls_chart.csv">polls_chart.csv</a>: the poll chart of the
+      app, with each poll (series <code>poll</code>) and the daily trend curve
+      of each party (series <code>trend</code>)</li>
 </ul>
 <p>Last update: %s. Polls: %s (%d polls, fieldwork up to %s).</p>
 <p>Code and method: <a href="%s">%s</a>.
@@ -56,7 +63,8 @@ Jordi Muñoz, Universitat de Barcelona.</p>
 )
 writeLines(enc2utf8(page), file.path(out, "index.html"), useBytes = TRUE)
 
-written <- paste(c(EXPORT_FILES, "index.html"), collapse = ", ")
+written <- paste(c(EXPORT_FILES, "polls_chart.csv", "index.html"),
+                 collapse = ", ")
 cat("Wrote", written, "to", out, "\n")
 cat(
   "Polls:", meta$polls$source, "-", meta$polls$n_polls, "polls, up to",
