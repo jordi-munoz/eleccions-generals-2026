@@ -10,6 +10,9 @@ RESULTS_2023 <- file.path("PROV_02_202307_1", "PROV_02_202307_1.xlsx")
 
 ELECTION_DATE <- as.Date("2026-11-29")
 WINDOW_DAYS   <- 92   # "last 3 months"
+# First date shown in the Polls chart. Only the display starts here: the trend
+# is still fitted on every poll of the window.
+CHART_START   <- as.Date("2026-09-20")
 THRESHOLD     <- 0.03 # share of valid votes (blank included) needed in a province
 MAJORITY      <- 176
 DEFAULT_N     <- 1000 # sample size assumed when a poll does not publish it
@@ -222,11 +225,21 @@ read_wikipedia_polls <- function(url = WIKI_URL) {
   xml2::xml_remove(xml2::xml_find_all(doc, "//sup"))
   breaks <- xml2::xml_find_all(doc, "//br")
   xml2::xml_text(breaks) <- " | "
+  # A figure that covers several parties is one cell spanning their columns
+  # (e.g. FA and FV reported together). html_table() would copy it into every
+  # column it spans, and WIKI_ADD would then count it twice: keep the figure in
+  # the first column only and leave the others empty.
+  for (td in xml2::xml_find_all(doc, "//table[contains(@class, 'wikitable')]//td[@colspan]")) {
+    k <- suppressWarnings(as.integer(xml2::xml_attr(td, "colspan")))
+    xml2::xml_set_attr(td, "colspan", NULL)
+    if (is.na(k) || k < 2) next
+    for (m in seq_len(k - 1)) xml2::xml_add_sibling(td, "td", "", .where = "after")
+  }
 
   out <- list()
   for (tb in xml2::xml_find_all(doc, "//table[contains(@class, 'wikitable')]")) {
     # These tables follow a heading whose id is the year, possibly with a
-    # note in brackets ("2026_(after_FA)", "2026_(before_FA)"). Later
+    # note in brackets ("2026_(with_Broad_Front)", "2026_(before_Broad_Front)"). Later
     # sections get ids such as 2026_2 and are skipped.
     id <- xml2::xml_attr(xml2::xml_find_first(tb, "preceding::*[self::h4 or self::h5 or self::h6][1]"), "id")
     if (is.na(id) || !grepl("^20\\d\\d(_\\(.*\\))?$", id)) next

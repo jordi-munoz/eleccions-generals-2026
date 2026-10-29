@@ -164,16 +164,17 @@ default_projection <- function(base, pl, est = poll_estimates(pl, base),
 # "trend", the curves of trend_curve()). Party names as in the chart legend,
 # where Frente Amplio's poll figure includes Compromís.
 polls_chart_rows <- function(pl, base, est = poll_estimates(pl, base),
-                             lang = EXPORT_LANG) {
+                             lang = EXPORT_LANG, from = CHART_START) {
   dates <- pl$polls$date
-  grid <- seq(min(dates), max(dates), by = 1)
+  start <- max(from, min(dates))
+  grid <- seq(start, max(dates), by = 1)
   shares <- pl$shares[, POLLED, drop = FALSE]
   curves <- trend_curve(dates, pl$pollster, shares, grid)
   rows <- list()
   for (p in POLLED) {
     y <- shares[, p]
     if (all(is.na(y))) next
-    ok <- !is.na(y)
+    ok <- !is.na(y) & dates >= start
     rows[[length(rows) + 1]] <- data.frame(
       series = "poll", date = format(dates[ok]), party_code = p,
       pct = y[ok], pollster = pl$polls$firm[ok],

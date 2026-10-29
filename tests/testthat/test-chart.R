@@ -20,7 +20,8 @@ chart_polls <- function() {
 }
 
 pl_chart <- chart_polls()
-chart <- polls_chart_rows(pl_chart, base)
+# The whole series, from the first poll (the default starts at CHART_START).
+chart <- polls_chart_rows(pl_chart, base, from = min(pl_chart$polls$date))
 
 test_that("every poll figure is a dot, with its pollster", {
   dots <- chart[chart$series == "poll", ]
@@ -39,6 +40,16 @@ test_that("trend curves are daily and end at the trend estimate", {
   est <- poll_estimates(pl_chart, base)
   expect_equal(pp$pct[nrow(pp)], round(est$trend[["PP"]], 3))
   expect_false(any(chart$series == "trend" & chart$party_code == "AA"))
+})
+
+test_that("the chart starts at CHART_START without changing the curves", {
+  cut <- polls_chart_rows(pl_chart, base, from = as.Date("2026-09-20"))
+  expect_true(all(as.Date(cut$date) >= as.Date("2026-09-20")))
+  pp <- cut[cut$series == "trend" & cut$party_code == "PP", ]
+  expect_equal(pp$date[1], "2026-09-20")
+  full <- chart[chart$series == "trend" & chart$party_code == "PP", ]
+  expect_equal(pp$pct, full$pct[full$date >= "2026-09-20"])
+  expect_equal(sum(cut$series == "poll" & cut$party_code == "PP"), 8)
 })
 
 test_that("names, colours and default visibility follow the chart", {

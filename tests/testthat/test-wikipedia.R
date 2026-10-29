@@ -4,7 +4,7 @@ row_of <- function(firm) polls[polls$firm == firm, ]
 
 test_that("the tables before and after the FA agreement are merged", {
   expect_setequal(polls$firm, c(
-    "GAD3/Vocento", "Hypothetical/No FV",
+    "GAD3/Vocento", "Hypothetical/No FV", "Joint/FA+FV",
     "SocioMétrica/El Español", "Sigma Dos/El Mundo"
   ))
   s <- row_of("SocioMétrica/El Español")
@@ -23,7 +23,14 @@ test_that("FA is read as Sumar, with FV added as Compromís was before", {
   expect_true(is.na(row_of("SocioMétrica/El Español")$PODEMOS)) # no column
 })
 
+test_that("a joint FA+FV figure spanning both columns is counted once", {
+  j <- row_of("Joint/FA+FV")
+  expect_equal(j$SUMAR, 6.8)
+  expect_equal(j$PODEMOS, 2.7) # the columns after the span stay aligned
+  expect_equal(j$PP, 31.1)
+})
+
 test_that("empty tables, election rows and later sections are skipped", {
   expect_false(any(grepl("election|skipped", polls$firm)))
-  expect_equal(nrow(polls), 4)
+  expect_equal(nrow(polls), 5)
 })

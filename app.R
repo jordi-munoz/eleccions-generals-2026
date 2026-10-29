@@ -269,7 +269,7 @@ ui <- function(req) {
     nav_panel(
       tr("tab_polls", lang), value = "polls",
       card(
-        card_header(tr("plot_head", lang)),
+        card_header(tr("plot_head", lang, fmt_date(CHART_START))),
         plotlyOutput("polls_plot", height = 480),
         card_footer(class = "small text-muted", tr("plot_foot", lang))
       ),
@@ -467,12 +467,14 @@ server <- function(input, output, session) {
   output$polls_plot <- renderPlotly({
     validate(need(has_polls, tr("polls_none", lang)))
     dates <- pl$polls$date
-    span <- range(dates)
+    # Shown from CHART_START; the curves are still fitted on every poll.
+    span <- c(max(CHART_START, min(dates)), max(dates))
     grid <- seq(span[1], span[2], by = 1)
     curves <- trend_curve(dates, pl$pollster, pl$shares[, POLLED, drop = FALSE], grid)
+    in_view <- dates >= span[1]
     fig <- plot_ly()
     for (p in POLLED[order(-ifelse(is.na(trend), 0, trend))]) {
-      y <- pl$shares[, p]
+      y <- ifelse(in_view, pl$shares[, p], NA)
       if (all(is.na(y))) next
       name <- poll_lab(p, lang)
       # Parties around 1% or less crowd the bottom of the chart: off until asked for.
@@ -499,7 +501,9 @@ server <- function(input, output, session) {
     fig |>
       layout(
         xaxis = list(title = "", showgrid = FALSE, tickformat = "%d-%m",
-                     range = as.character(span + c(-3, 3))),
+                     # Half a day of margin on the left, so dots on the first
+                     # day are not cut; a little room on the right.
+                     range = c(paste(span[1] - 1, "12:00"), as.character(span[2] + 3))),
         yaxis = list(title = "", ticksuffix = "%", rangemode = "tozero", gridcolor = "#eeeeee",
                      zeroline = FALSE),
         legend = list(orientation = "h", y = -0.12), hovermode = "closest",

@@ -141,9 +141,9 @@ TR <- list(
                     ca = "L'últim escó és per a %s. El següent a la cua és %s, a qui falten %s punts del vot vàlid per aconseguir-lo. P(escó) és la proporció de simulacions en què el partit obté almenys un escó aquí.",
                     es = "El último escaño es para %s. El siguiente en la cola es %s, al que le faltan %s puntos del voto válido para conseguirlo. P(escaño) es la proporción de simulaciones en las que el partido obtiene al menos un escaño aquí."),
 
-  plot_head     = c(en = "Poll trend, last three months (% of valid vote)",
-                    ca = "Tendència de les enquestes, últims tres mesos (% del vot vàlid)",
-                    es = "Tendencia de las encuestas, últimos tres meses (% del voto válido)"),
+  plot_head     = c(en = "Poll trend since %s (%% of valid vote)",
+                    ca = "Tendència de les enquestes des del %s (%% del vot vàlid)",
+                    es = "Tendencia de las encuestas desde el %s (%% del voto válido)"),
   plot_foot     = c(en = "Each dot is a poll. Lines are the trend for an average pollster, estimated at each date from the polls around it; at the right-hand end they reach the trend estimate the projection uses. Where polls are sparse the lines can wobble. Parties with too few polls have no line. Click a party in the legend to show or hide it; the smallest ones start hidden.",
                     ca = "Cada punt és una enquesta. Les línies són la tendència per a una empresa mitjana, estimada a cada data amb les enquestes del voltant; a l'extrem dret arriben a l'estimació de tendència que fa servir la projecció. On hi ha poques enquestes, les línies poden oscil·lar. Els partits amb massa poques enquestes no tenen línia. Clica un partit a la llegenda per mostrar-lo o amagar-lo; els més petits comencen amagats.",
                     es = "Cada punto es una encuesta. Las líneas son la tendencia para una empresa media, estimada en cada fecha con las encuestas de alrededor; en el extremo derecho llegan a la estimación de tendencia que usa la proyección. Donde hay pocas encuestas, las líneas pueden oscilar. Los partidos con muy pocas encuestas no tienen línea. Haz clic en un partido de la leyenda para mostrarlo u ocultarlo; los más pequeños empiezan ocultos."),

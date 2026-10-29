@@ -4,6 +4,22 @@ test_that("every interface text exists in the three languages", {
   expect_equal(tr("coal_head", "en", "PP", 140L), "PP: 140 seats")
 })
 
+test_that("every text with placeholders formats in every language", {
+  # A literal % must be written %%, or sprintf() fails and the page breaks.
+  for (key in names(TR)) for (lang in LANGS) {
+    txt <- TR[[key]][[lang]]
+    codes <- regmatches(txt, gregexpr("%[%sd]", txt))[[1]]
+    codes <- codes[codes != "%%"]
+    # Without placeholders the text is shown as written, so %% would show twice.
+    if (!length(codes)) {
+      expect_false(grepl("%%", txt, fixed = TRUE), info = paste(key, lang))
+      next
+    }
+    args <- lapply(codes, function(cd) if (cd == "%d") 1L else "x")
+    expect_no_error(do.call(tr, c(list(key, lang), args)), message = paste(key, lang))
+  }
+})
+
 test_that("the language comes from the URL, then the browser, then English", {
   expect_equal(pick_lang("?lang=ca", "es-ES,es;q=0.9"), "ca")
   expect_equal(pick_lang("?lang=xx", "es-ES,es;q=0.9"), "es")
